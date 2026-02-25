@@ -1,0 +1,45 @@
+services:
+  frontend:
+    build: ./frontend/my-react-app
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000
+      - REACT_APP_BACKEND_URL=http://backend:80
+    depends_on:
+      - backend
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASS: password
+      DB_NAME: postsdb
+      EMAIL_SECRET: supersecretemailkey
+      LOGIN_SECRET: supersecretloginkey
+      GMAIL_USER: yourgmail@gmail.com
+      GMAIL_PASS: your_app_password
+      FRONTEND_URL: http://frontend:3000
+
+
+  db:
+    image: mysql:8
+    container_name: mysql
+    ports:
+    - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: postsdb
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  mysql_data:

@@ -1,0 +1,97 @@
+.listings-page {
+  padding: 40px;
+}
+
+.property-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+.property-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  padding: 15px;
+  transition: 0.3s ease;
+}
+
+.property-card:hover {
+  transform: translateY(-5px);
+}
+
+.property-card img {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.price {
+  color: #40916c;
+  font-weight: bold;
+}
+
+.card-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+/* compare page styles */
+.compare-page {
+  padding: 40px;
+}
+
+.compare-page table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.compare-page th,
+.compare-page td {
+  padding: 15px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+.compare-page th {
+  background: #2d6a4f;
+  color: white;
+}
+
+/* property detail styles */
+.property-detail {
+  padding: 40px;
+}
+
+.gallery img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.seller-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 30px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.booking-section {
+  margin-top: 40px;
+}
+
+.book-btn {
+  background: #2d6a4f;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  margin-top: 15px;
+  cursor: pointer;
+}
+
+.book-btn:hover {
+  background: #1b4332;
+}
