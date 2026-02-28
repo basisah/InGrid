@@ -8,7 +8,7 @@ function SearchBar({ setProperties }) {
   const handleSearch = async () => {
     try {
       const response = await fetch(
-        `/api/properties?location=${location}&type=${type}&maxPrice=${maxPrice}`
+        `http://localhost:80/api/properties?location=${location}&type=${type}&maxPrice=${maxPrice}`
       );
       const data = await response.json();
       setProperties(data);
@@ -27,10 +27,10 @@ function SearchBar({ setProperties }) {
         />
 
         <select onChange={(e) => setType(e.target.value)}>
-          <option value="">All Types</option>
-          <option value="Short-Term">Short-Term</option>
-          <option value="Long-Term">Long-Term</option>
-          <option value="Mortgage">Mortgage</option>
+         <option value="">All Types</option>
+         <option value="short-term">Short-Term</option>
+         <option value="rental">Long-Term</option>
+         <option value="buy">Buy</option>
         </select>
 
         <input
