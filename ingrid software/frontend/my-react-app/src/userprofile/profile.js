@@ -80,7 +80,7 @@ function Profile() {
         Logout
       </button>
     </div>
-
+{/* saved lisitng  */}
   <div className="profile-section">
     <h3>Saved Listings</h3>
     {savedListings.length === 0 ? (
@@ -96,7 +96,7 @@ function Profile() {
       </div>
     )}
   </div>
-
+{/* recently viewed page */}
   <div className="profile-section">
     <h3>Recently Viewed</h3>
     {history.length === 0 ? (
