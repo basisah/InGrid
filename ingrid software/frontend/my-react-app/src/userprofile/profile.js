@@ -64,40 +64,55 @@ function Profile() {
   if (!user) return <p>{message || "No user data available."}</p>;
 
   return (
-    <div className="profile-container">
-      <h2>Welcome, {user.first_name} {user.last_name}</h2>
-      <p><strong>Email:</strong> {user.email}</p>
-      <p><strong>Phone:</strong> {user.phone_number}</p>
-      <p><strong>Address:</strong> {user.home_address}</p>
-      <p><strong>Date of Birth:</strong> {user.date_of_birth}</p>
-      <p><strong>Role:</strong> {user.role}</p>
-      <h3>Saved Listings</h3>
-      {savedListings.length === 0 ? (
-        <p>No saved listings yet.</p>
-      ) : (
-        <ul>
-          {savedListings.map((listing) => (
-            <li key={listing.id}>
-              <strong>{listing.title}</strong> - ${listing.price}
-            </li>
-          ))}
-        </ul>
-      )}
-    {/* THE HISTORY PAGE IN PROFILE */}
-      <h3>Recently Viewed</h3>
-      {history.length === 0 ? (
-        <p>No viewing history yet.</p>
-      ) : (
-        <ul>
-          {history.map((listing) => (
-            <li key={listing.id}>
-              <strong>{listing.title}</strong> - ${listing.price}
-            </li>
-          ))}
-        </ul>
-      )}
-      <button onClick={handleLogout}>Logout</button>
+    <div className="profile-page">
+      <div className="profile-card">
+        <h2>Welcome, {user.first_name} {user.last_name}</h2>
+
+        <div className="profile-info">
+          <p><strong>Email:</strong> {user.email}</p>
+          <p><strong>Phone:</strong> {user.phone_number}</p>
+          <p><strong>Address:</strong> {user.home_address}</p>
+          <p><strong>Date of Birth:</strong> {user.date_of_birth}</p>
+          <p><strong>Role:</strong> {user.role}</p>
+        </div>
+
+      <button className="logout-btn" onClick={handleLogout}>
+        Logout
+      </button>
     </div>
+
+  <div className="profile-section">
+    <h3>Saved Listings</h3>
+    {savedListings.length === 0 ? (
+      <p>No saved listings yet.</p>
+    ) : (
+      <div className="listing-grid">
+        {savedListings.map((listing) => (
+          <div key={listing.id} className="listing-card">
+            <h4>{listing.title}</h4>
+            <p>${listing.price}</p>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+
+  <div className="profile-section">
+    <h3>Recently Viewed</h3>
+    {history.length === 0 ? (
+      <p>No viewing history yet.</p>
+    ) : (
+      <div className="listing-grid">
+        {history.map((listing) => (
+          <div key={listing.id} className="listing-card">
+            <h4>{listing.title}</h4>
+            <p>${listing.price}</p>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
   );
 }
 
