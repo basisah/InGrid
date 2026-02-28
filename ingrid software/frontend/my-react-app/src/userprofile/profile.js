@@ -6,6 +6,8 @@ function Profile() {
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [savedListings, setSavedListings] = useState([]);
+  const [history, setHistory] = useState([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -32,6 +34,8 @@ function Profile() {
 
         if (response.ok) {
           setUser(data.user); // assuming backend sends { user: { ... } }
+          setSavedListings(data.savedListings || []);
+          setHistory(data.history || []);
         } else {
           setMessage(data.message || "Failed to fetch profile.");
           if (response.status === 401) {
@@ -67,7 +71,31 @@ function Profile() {
       <p><strong>Address:</strong> {user.home_address}</p>
       <p><strong>Date of Birth:</strong> {user.date_of_birth}</p>
       <p><strong>Role:</strong> {user.role}</p>
-
+      <h3>Saved Listings</h3>
+      {savedListings.length === 0 ? (
+        <p>No saved listings yet.</p>
+      ) : (
+        <ul>
+          {savedListings.map((listing) => (
+            <li key={listing.id}>
+              <strong>{listing.title}</strong> - ${listing.price}
+            </li>
+          ))}
+        </ul>
+      )}
+    {/* THE HISTORY PAGE IN PROFILE */}
+      <h3>Recently Viewed</h3>
+      {history.length === 0 ? (
+        <p>No viewing history yet.</p>
+      ) : (
+        <ul>
+          {history.map((listing) => (
+            <li key={listing.id}>
+              <strong>{listing.title}</strong> - ${listing.price}
+            </li>
+          ))}
+        </ul>
+      )}
       <button onClick={handleLogout}>Logout</button>
     </div>
   );

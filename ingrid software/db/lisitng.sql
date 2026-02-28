@@ -55,3 +55,16 @@ CREATE TABLE favorites (
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (property_id) REFERENCES properties(id)
 );
+CREATE TABLE saved_listings (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT,
+  listing_id INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE view_history (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT,
+  listing_id INT,
+  viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
