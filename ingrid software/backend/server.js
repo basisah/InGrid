@@ -182,7 +182,7 @@ const authenticate = (req, res, next) => {
 };
 
 //profile route
-app.get("/api/profile", authenticateToken, async (req, res) => {
+app.get("/api/profile", authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -208,6 +208,38 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
+});
+
+// GET ALL LISTINGS (Homepage Search)
+app.get("/api/properties", (req, res) => {
+  const { location, type, maxPrice } = req.query;
+
+  let query = "SELECT * FROM properties WHERE 1=1";
+  let values = [];
+
+  if (location) {
+    query += " AND address LIKE ?";
+    values.push(`%${location}%`);
+  }
+
+  if (type) {
+    query += " AND type = ?";
+    values.push(type.toLowerCase()); // match ENUM in DB
+  }
+
+  if (maxPrice) {
+    query += " AND price <= ?";
+    values.push(maxPrice);
+  }
+
+  db.query(query, values, (err, results) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json(results);
+  });
 });
 
 // ------------------- START SERVER -------------------
