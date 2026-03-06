@@ -13,7 +13,7 @@ function Main() {
           <Link to="/listing">
             <button className="primary-btn">Browse Listings</button>
           </Link>
-          <Link to="/post-property">
+          <Link to="/propertyList">
             <button className="secondary-btn">Post a Property</button>
           </Link>
         </div>
