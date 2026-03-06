@@ -11,16 +11,15 @@ export default function Listings() {
     maxPrice: "",
   });
   const [compareList, setCompareList] = useState([]);
-
-  useEffect(() => {
-    fetchProperties();
-  }, []);
+  
 
   const fetchProperties = async () => {
     const response = await axios.get("/api/properties", { params: filters });
     setProperties(response.data);
   };
-
+    useEffect(() => {
+        fetchProperties();
+      }, []);
   const handleCompare = (property) => {
     if (compareList.length >= 3) {
       alert("You can only compare up to 3 properties.");
