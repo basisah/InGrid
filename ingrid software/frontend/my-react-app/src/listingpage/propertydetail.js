@@ -8,13 +8,13 @@ export default function PropertyDetail() {
   const [property, setProperty] = useState(null);
 
   useEffect(() => {
+   
+    const fetchProperty = async () => {
+      const response = await axios.get(`/api/properties/${id}`);
+      setProperty(response.data);
+    };
     fetchProperty();
   }, []);
-
-  const fetchProperty = async () => {
-    const response = await axios.get(`/api/properties/${id}`);
-    setProperty(response.data);
-  };
 
   if (!property) return <div>Loading...</div>;
 
