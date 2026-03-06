@@ -13,8 +13,6 @@ import PropertyDetail from "./listingpage/propertydetail";
 import Compare from "./listingpage/compare";
 // import AdminDashboard from "./pages/AdminDashboard";
 
-import { CompareProvider } from "./context/CompareContext";
-
 // PrivateRoute component to guard protected routes
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem("token");
@@ -23,72 +21,66 @@ const PrivateRoute = ({ children }) => {
 
 function App() {
   return (
-    <CompareProvider>
-      <Router>
-        <Routes>
+    <Router>
+      <Routes>
 
-          {/* Default redirect */}
-          <Route path="/" element={<Navigate to="/home" />} />
+        {/* Default redirect */}
+        <Route path="/" element={<Navigate to="/home" />} />
 
-          {/* Public Routes */}
-          <Route path="/home" element={<Home />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgotpassword" element={<ForgotPassword />} />
-          <Route path="/reset/:token" element={<ResetPassword />} />
+        {/* Public Routes */}
+        <Route path="/home" element={<Home />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgotpassword" element={<ForgotPassword />} />
+        <Route path="/reset/:token" element={<ResetPassword />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/listings" element={<Listings />} />
+        <Route path="/property/:id" element={<PropertyDetail />} />
+        <Route path="/compare" element={<Compare />} />
 
-          {/* Protected Routes */}
-          <Route
-            path="/profile"
-            element={
-              <PrivateRoute>
-                <Profile />
-              </PrivateRoute>
-            }
-          />
+        {/* nelson update - i commented out the private routes because i want to test the public routes first and i need to see the public routes work correctly */}
+        
+        {/* Protected Routes
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
 
-          <Route
-            path="/listings"
-            element={
-              <PrivateRoute>
-                <Listings />
-              </PrivateRoute>
-            }
-          />
+        <Route
+          path="/listings"
+          element={
+            <PrivateRoute>
+              <Listings />
+            </PrivateRoute>
+          }
+        />
 
-          <Route
-            path="/property/:id"
-            element={
-              <PrivateRoute>
-                <PropertyDetail />
-              </PrivateRoute>
-            }
-          />
+        <Route
+          path="/property/:id"
+          element={
+            <PrivateRoute>
+              <PropertyDetail />
+            </PrivateRoute>
+          }
+        />
 
-          <Route
-            path="/compare"
-            element={
-              <PrivateRoute>
-                <Compare />
-              </PrivateRoute>
-            }
-          />
+        <Route
+          path="/compare"
+          element={
+            <PrivateRoute>
+              <Compare />
+            </PrivateRoute>
+          }
+        /> */}
 
-          {/* <Route
-            path="/admin"
-            element={
-              <PrivateRoute>
-                <AdminDashboard />
-              </PrivateRoute>
-            }
-          /> */}
+        <Route path="*" element={<p>Page Not Found</p>} />
 
-          {/* Catch all unmatched routes */}
-          <Route path="*" element={<p>Page Not Found</p>} />
-
-        </Routes>
-      </Router>
-    </CompareProvider>
+      </Routes>
+    </Router>
   );
 }
 
