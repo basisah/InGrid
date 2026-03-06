@@ -1,11 +1,11 @@
-import Navbar from "..home/navbar";
 import React, { useState } from "react";
-import Main from "..home/main";
-import SearchBar from "..home/searchBar";
-import Features from "..home/features";
-import Footer from "..home/footer";
+import Navbar from  "./navbar";
+import Main from "./main";
+import SearchBar from "./searchbar";
+import Features from "./features";
+import Footer from "./footer";
 import "./home.css";
-import PropertyList from "..home/PropertyList";
+import PropertyList from "./propertyList";
 function Home() {
   const [properties, setProperties] = useState([]);
 
