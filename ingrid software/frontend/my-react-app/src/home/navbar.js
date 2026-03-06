@@ -21,7 +21,7 @@ function Navbar() {
         <li><Link to="/home">Home</Link></li>
         <li><Link to="/listing">Listings</Link></li>
         <li><Link to="/compare">Compare</Link></li>
-        <li><Link to="/post-property">Post Property</Link></li>
+        <li><Link to="/propertyList">Post Property</Link></li>
 
 
         {isLoggedIn ? (
