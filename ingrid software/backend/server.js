@@ -274,6 +274,7 @@ app.get("/api/properties", async (req, res) => {
     values.push(maxPrice);
   }
 
+//
   try {
     const [results] = await db.query(query, values);
     res.json(results);
