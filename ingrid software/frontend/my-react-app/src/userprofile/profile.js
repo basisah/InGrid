@@ -9,6 +9,9 @@ function Profile() {
   const [savedListings, setSavedListings] = useState([]);
   const [history, setHistory] = useState([]);
 
+  //state for verification status
+  const [verificationStatus, setVerificationStatus] = useState("pending");
+
   useEffect(() => {
     const fetchProfile = async () => {
       const token = localStorage.getItem("token");
@@ -43,6 +46,12 @@ function Profile() {
             navigate("/login");
           }
         }
+        //Add fetch for verification status
+        const verifyRes = await fetch(`${API_URL}/api/verify-status/${data.user.id}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+});
+        const verifyData = await verifyRes.json();
+        setVerificationStatus(verifyData.status);
       } catch (error) {
         console.error("Profile fetch error:", error);
         setMessage("Server error. Please try again later.");
@@ -65,8 +74,20 @@ function Profile() {
 
   return (
     <div className="profile-page">
+      //Add verification status badge next to user's name
       <div className="profile-card">
-        <h2>Welcome, {user.first_name} {user.last_name}</h2>
+        <h2> 
+          Welcome, {user.first_name} {user.last_name}
+          {verificationStatus === "verified" && (
+          <span style={{ marginLeft: "10px", color: "#27ae60" }}>✅ Verified</span>
+            )}
+          {verificationStatus === "pending" && (
+          <span style={{ marginLeft: "10px", color: "#f39c12" }}>⏳ Pending Verification</span>
+          )}
+          {verificationStatus === "rejected" && (
+          <span style={{ marginLeft: "10px", color: "#e74c3c" }}>❌ Verification Rejected</span>
+        )}
+</h2>
 
         <div className="profile-info">
           <p><strong>Email:</strong> {user.email}</p>
