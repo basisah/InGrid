@@ -52,6 +52,21 @@ export default function Listings() {
           <option value="short-term">Short-Term</option>
           <option value="buy">Buy</option>
         </select>
+        <input
+              type="number"
+              placeholder="Min Price"
+              onChange={(e) =>
+              setFilters({ ...filters, minPrice: e.target.value })
+              }
+              />
+              <input
+              type="number"
+              placeholder="Max Price"
+              onChange={(e) =>
+                setFilters({ ...filters, maxPrice: e.target.value })
+                }
+                />
+        
 
         <button onClick={fetchProperties}>Apply Filters</button>
       </div>
