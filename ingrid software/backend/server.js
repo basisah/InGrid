@@ -210,6 +210,44 @@ app.get("/api/profile", authenticate, async (req, res) => {
   }
 });
 
+// GET VERIFICATION STATUS
+app.get("/api/verify-status/:userId", authenticate, async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM account_verification WHERE user_id = ?",
+      [req.params.userId]
+    );
+    if (!rows.length) return res.json({ status: "pending" });
+    res.json({ status: rows[0].status, verified_at: rows[0].verified_at });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// UPDATE VERIFICATION STATUS (admin only)
+app.post("/api/verify-user/:userId", authenticate, async (req, res) => {
+  try {
+    const [existing] = await db.query(
+      "SELECT * FROM account_verification WHERE user_id = ?",
+      [req.params.userId]
+    );
+    if (existing.length) {
+      await db.query(
+        "UPDATE account_verification SET status = 'verified', verified_at = NOW() WHERE user_id = ?",
+        [req.params.userId]
+      );
+    } else {
+      await db.query(
+        "INSERT INTO account_verification (user_id, status, verified_at) VALUES (?, 'verified', NOW())",
+        [req.params.userId]
+      );
+    }
+    res.json({ message: "User verified successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // GET ALL LISTINGS (Homepage Search)
 app.get("/api/properties", (req, res) => {
   const { location, type, maxPrice } = req.query;
