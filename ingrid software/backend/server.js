@@ -248,9 +248,9 @@ app.post("/api/verify-user/:userId", authenticate, async (req, res) => {
   }
 });
 
-// GET ALL LISTINGS (Homepage Search)
-app.get("/api/properties", (req, res) => {
-  const { location, type, maxPrice } = req.query;
+// GET ALL LISTINGS (Homepage Search) - made some edits to this route to support search filters, will need to update frontend to match
+app.get("/api/properties", async (req, res) => {
+  const { location, type, minPrice, maxPrice } = req.query;
 
   let query = "SELECT * FROM properties WHERE 1=1";
   let values = [];
@@ -264,20 +264,23 @@ app.get("/api/properties", (req, res) => {
     query += " AND type = ?";
     values.push(type.toLowerCase()); // match ENUM in DB
   }
+  if (minPrice) {
+    query += " AND price >= ?";
+    values.push(minPrice);
+  }
 
   if (maxPrice) {
     query += " AND price <= ?";
     values.push(maxPrice);
   }
 
-  db.query(query, values, (err, results) => {
-    if (err) {
-      console.log(err);
-      return res.status(500).json({ error: "Database error" });
-    }
-
+  try {
+    const [results] = await db.query(query, values);
     res.json(results);
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
 // ------------------- START SERVER -------------------
