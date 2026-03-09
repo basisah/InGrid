@@ -1,12 +1,3 @@
-CREATE TABLE users (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100),
-    email VARCHAR(100) UNIQUE,
-    password VARCHAR(255),
-    role ENUM('buyer','seller','agent','admin'),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE properties (
     id INT PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(255),
@@ -72,3 +63,10 @@ CREATE TABLE view_history (
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (property_id) REFERENCES properties(id)
 );
+ALTER TABLE properties ADD COLUMN is_verified BOOLEAN DEFAULT FALSE;
+ALTER TABLE properties ADD COLUMN main_image VARCHAR(500);
+
+INSERT INTO properties (title, address, type, price, bedrooms, bathrooms, size, description, main_image, latitude, longitude, is_verified) VALUES
+('Cozy Downtown Condo', '123 Main St, Saskatoon', 'rental', 1800, 1, 1, 650, 'A cozy condo close to university.', 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267', 52.1332, -106.6700, TRUE),
+('Family Home with Yard', '456 Oak Ave, Regina', 'rental', 2200, 3, 2, 1400, 'Spacious family home with a large yard.', 'https://images.unsplash.com/photo-1570129477492-45c003edd2be', 50.4452, -104.6189, TRUE),
+('Spacious Modern House', '789 Pine Rd, Prince Albert', 'buy', 350000, 4, 3, 2200, 'Modern house for sale.', 'https://images.unsplash.com/photo-1568605114967-8130f3a36994', 53.2033, -105.7531, FALSE);

@@ -21,7 +21,7 @@ services:
       DB_HOST: db
       DB_USER: root
       DB_PASS: password
-      DB_NAME: postsdb
+      DB_NAME: ingriddb
       EMAIL_SECRET: supersecretemailkey
       LOGIN_SECRET: supersecretloginkey
       GMAIL_USER: yourgmail@gmail.com
