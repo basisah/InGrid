@@ -289,14 +289,21 @@ app.get("/api/furniture/:id", async (req, res) => {
   try {
     const propertyId = req.params.id;
 
-    const furnitureRecommendations = [
+    const rooms = [
+      { name: "Living Room", width: 12, depth: 15 },
+      { name: "Bedroom", width: 10, depth: 12 },
+      { name: "Dining Room", width: 8, depth: 8 }
+    ];
+
+    const furnitureItems = [
       {
         id: 1,
         name: "Compact Sofa",
         price: 499,
         image_url: "https://via.placeholder.com/200?text=Compact+Sofa",
         room: "Living Room",
-        fits: true
+        width: 6,
+        depth: 3
       },
       {
         id: 2,
@@ -304,7 +311,8 @@ app.get("/api/furniture/:id", async (req, res) => {
         price: 699,
         image_url: "https://via.placeholder.com/200?text=Queen+Bed",
         room: "Bedroom",
-        fits: true
+        width: 5,
+        depth: 7
       },
       {
         id: 3,
@@ -312,9 +320,21 @@ app.get("/api/furniture/:id", async (req, res) => {
         price: 299,
         image_url: "https://via.placeholder.com/200?text=Dining+Table",
         room: "Dining Room",
-        fits: false
+        width: 9,
+        depth: 5
       }
     ];
+
+    const furnitureRecommendations = furnitureItems.map((item) => {
+      const room = rooms.find((r) => r.name === item.room);
+      const fits = room && item.width <= room.width && item.depth <= room.depth;
+
+      return {
+        ...item,
+        fits,
+        clearance_space: room ? (room.width - item.width) * (room.depth - item.depth) : null
+      };
+    });
 
     res.json(furnitureRecommendations);
   } catch (err) {
