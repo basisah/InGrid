@@ -10,6 +10,7 @@ export default function PropertyDetail() {
 
   useEffect(() => {
     fetchProperty();
+    fetchFurniture();
   }, []);
 
   const fetchProperty = async () => {
@@ -67,11 +68,13 @@ export default function PropertyDetail() {
       <div className="furniture-section">
         <h2>Recommended Furniture</h2>
         <div className="furniture-grid">
-          {property.furniture.map((item) => (
+          {furniture.map((item) => (
             <div key={item.id} className="furniture-card">
               <img src={item.image_url} alt="furniture" />
               <p>{item.name}</p>
               <p>${item.price}</p>
+              <p>{item.room}</p>
+              <p>{item.fits ? "Fits in room" : "Does not fit"}</p>
             </div>
           ))}
         </div>
