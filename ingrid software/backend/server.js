@@ -284,6 +284,45 @@ app.get("/api/properties", async (req, res) => {
   }
 });
 
+// GET FURNITURE RECOMMENDATIONS FOR A PROPERTY
+app.get("/api/furniture/:id", async (req, res) => {
+  try {
+    const propertyId = req.params.id;
+
+    const furnitureRecommendations = [
+      {
+        id: 1,
+        name: "Compact Sofa",
+        price: 499,
+        image_url: "https://via.placeholder.com/200?text=Compact+Sofa",
+        room: "Living Room",
+        fits: true
+      },
+      {
+        id: 2,
+        name: "Queen Bed",
+        price: 699,
+        image_url: "https://via.placeholder.com/200?text=Queen+Bed",
+        room: "Bedroom",
+        fits: true
+      },
+      {
+        id: 3,
+        name: "Dining Table",
+        price: 299,
+        image_url: "https://via.placeholder.com/200?text=Dining+Table",
+        room: "Dining Room",
+        fits: false
+      }
+    ];
+
+    res.json(furnitureRecommendations);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // ------------------- START SERVER -------------------
 app.listen(PORT, HOST, () => {
   console.log(`Server running at http://${HOST}:${PORT}`);
