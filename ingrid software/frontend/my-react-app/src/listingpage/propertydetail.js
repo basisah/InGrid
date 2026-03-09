@@ -8,17 +8,6 @@ export default function PropertyDetail() {
   const [property, setProperty] = useState(null);
   const [furniture, setFurniture] = useState([]);
 
-  useEffect(() => {
-   
-    const fetchProperty = async () => {
-      const response = await axios.get(`/api/properties/${id}`);
-      setProperty(response.data);
-    };
-    fetchProperty();
-    fetchFurniture();
-  }, []);
-
-<<<<<<< HEAD
   const fetchProperty = async () => {
     const response = await axios.get(`/api/properties/${id}`);
     setProperty(response.data);
@@ -29,16 +18,18 @@ export default function PropertyDetail() {
     setFurniture(response.data);
   };
 
-=======
->>>>>>> origin/nelson-feature
+  useEffect(() => {
+    fetchProperty();
+    fetchFurniture();
+  }, [id]);
+
   if (!property) return <div>Loading...</div>;
 
   return (
     <div className="property-detail">
-
       {/* IMAGE GALLERY */}
       <div className="gallery">
-        {property.images.map((img) => (
+        {property.images?.map((img) => (
           <img key={img.id} src={img.image_url} alt="property" />
         ))}
       </div>
@@ -59,8 +50,8 @@ export default function PropertyDetail() {
       {/* SELLER INFO */}
       <div className="seller-card">
         <h3>Contact Agent</h3>
-        <p>{property.seller.name}</p>
-        <p>{property.seller.email}</p>
+        <p>{property.seller?.name}</p>
+        <p>{property.seller?.email}</p>
         <button>Message Agent</button>
       </div>
 
