@@ -14,7 +14,8 @@ export default function Listings() {
   
 
   const fetchProperties = async () => {
-    const response = await axios.get("/api/properties", { params: filters });
+    const API_URL = process.env.REACT_APP_API_URL || "http://localhost:80"; //basisah - added API_URL with fallback for local development
+    const response = await axios.get(`${API_URL}/api/properties`, { params: filters }); //basisah - added filters as query params
     setProperties(response.data);
   };
     useEffect(() => {
