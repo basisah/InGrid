@@ -6,6 +6,7 @@ import "./listing.css";
 export default function PropertyDetail() {
   const { id } = useParams();
   const [property, setProperty] = useState(null);
+  const [furniture, setFurniture] = useState([]);
 
   useEffect(() => {
     fetchProperty();
@@ -14,6 +15,11 @@ export default function PropertyDetail() {
   const fetchProperty = async () => {
     const response = await axios.get(`/api/properties/${id}`);
     setProperty(response.data);
+  };
+
+  const fetchFurniture = async () => {
+    const response = await axios.get(`/api/furniture/${id}`);
+    setFurniture(response.data);
   };
 
   if (!property) return <div>Loading...</div>;
