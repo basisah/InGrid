@@ -9,10 +9,16 @@ export default function PropertyDetail() {
   const [furniture, setFurniture] = useState([]);
 
   useEffect(() => {
+   
+    const fetchProperty = async () => {
+      const response = await axios.get(`/api/properties/${id}`);
+      setProperty(response.data);
+    };
     fetchProperty();
     fetchFurniture();
   }, []);
 
+<<<<<<< HEAD
   const fetchProperty = async () => {
     const response = await axios.get(`/api/properties/${id}`);
     setProperty(response.data);
@@ -23,6 +29,8 @@ export default function PropertyDetail() {
     setFurniture(response.data);
   };
 
+=======
+>>>>>>> origin/nelson-feature
   if (!property) return <div>Loading...</div>;
 
   return (

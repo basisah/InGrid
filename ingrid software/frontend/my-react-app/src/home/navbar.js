@@ -18,10 +18,10 @@ function Navbar() {
       <div className="logo">INGRID</div>
 
       <ul className="nav-links">
-        <li>Home</li>
-        <li>listings</li>
-        <li>Compare</li>
-        <li>Post Property</li>
+        <li><Link to="/home">Home</Link></li>
+        <li><Link to="/listing">Listings</Link></li>
+        <li><Link to="/compare">Compare</Link></li>
+        <li><Link to="/propertyList">Post Property</Link></li>
 
 
         {isLoggedIn ? (
@@ -29,7 +29,7 @@ function Navbar() {
             Logout
           </li>
         ) : (
-          <li className="login-btn">Login</li>
+          <li className="login-btn"><Link to="/login">Login</Link></li>
         )}
       </ul>
     </nav>
