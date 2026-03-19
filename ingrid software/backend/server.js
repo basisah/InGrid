@@ -284,6 +284,21 @@ app.get("/api/properties", async (req, res) => {
   }
 });
 
+// GET  A SINGLE PROPERTY after user clicks on a listing to view details
+app.get("/api/properties/:id", async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM properties WHERE id = ?",
+      [req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ message: "Property not found" });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
 // GET FURNITURE RECOMMENDATIONS FOR A PROPERTY
 app.get("/api/furniture/:id", async (req, res) => {
   try {
