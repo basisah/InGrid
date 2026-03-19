@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router-dom"; //basisah - added Link import for navigation
 import React, { useEffect, useState } from "react";
 
 function Navbar() {
