@@ -19,8 +19,8 @@ export default function PropertyDetail() {
   };
 
   useEffect(() => {
-    fetchProperty();
     fetchFurniture();
+    fetchProperty();
   }, [id]);
 
   if (!property) return <div>Loading...</div>;
