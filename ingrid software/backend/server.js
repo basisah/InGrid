@@ -284,6 +284,21 @@ app.get("/api/properties", async (req, res) => {
   }
 });
 
+// GET SINGLE PROPERTY
+app.get("/api/properties/:id", async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM properties WHERE id = ?",
+      [req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ message: "Property not found" });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
 // MAKE PAYMENT / BOOK PROPERTY
 app.post("/api/payments", authenticate, async (req, res) => {
   const { property_id, check_in, check_out, guests, amount } = req.body;
