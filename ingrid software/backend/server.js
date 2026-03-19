@@ -4,7 +4,7 @@ const express = require('express');
 const mysql = require("mysql2/promise");
 const path = require("path");
 const bcrypt = require("bcrypt");
-const crypto = require("crypto");
+// const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 
@@ -27,7 +27,7 @@ const db = mysql.createPool({
   host: process.env.DB_HOST || "db",
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASS || "password",
-  database: process.env.DB_NAME || "postsdb"
+  database: process.env.DB_NAME || "ingriddb",
 });
 
 // ------------------- ROUTES -------------------
@@ -189,12 +189,12 @@ app.get("/api/profile", authenticate, async (req, res) => {
     const [user] = await db.query("SELECT * FROM users WHERE id = ?", [userId]);
 
     const [saved] = await db.query(
-      "SELECT l.* FROM saved_listings s JOIN listings l ON s.listing_id = l.id WHERE s.user_id = ?",
+      "SELECT l.* FROM saved_listings s JOIN properties l ON s.property_id = l.id WHERE s.user_id = ?",
       [userId]
     );
 
     const [history] = await db.query(
-      "SELECT l.* FROM view_history h JOIN listings l ON h.listing_id = l.id WHERE h.user_id = ?",
+      "SELECT l.* FROM view_history h JOIN properties l ON h.property_id = l.id WHERE h.user_id = ?",
       [userId]
     );
 
@@ -274,7 +274,6 @@ app.get("/api/properties", async (req, res) => {
     values.push(maxPrice);
   }
 
-//
   try {
     const [results] = await db.query(query, values);
     res.json(results);
@@ -343,6 +342,192 @@ app.get("/api/furniture/:id", async (req, res) => {
   }
 });
 
+// GET ALL USERS (ADMIN)
+app.get("/api/admin/users", authenticate, async (req, res) => {
+
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+
+  try {
+    const [users] = await db.query(
+      "SELECT id, first_name, last_name, email, role FROM users"
+    );
+
+    res.json(users);
+
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+
+});
+
+// POST PROPERTY (Landlord posts property)
+app.post("/api/properties", authenticate, async (req, res) => {
+  try {
+    const {
+      title,
+      address,
+      type,
+      price,
+      bedrooms,
+      bathrooms,
+      size,
+      description,
+      main_image
+    } = req.body;
+
+    const landlordId = req.user.id;
+
+    await db.query(
+      `INSERT INTO properties 
+      (title, address, type, price, bedrooms, bathrooms, size, description, main_image, landlord_id) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        title,
+        address,
+        type,
+        price,
+        bedrooms,
+        bathrooms,
+        size,
+        description,
+        main_image,
+        landlordId
+      ]
+    );
+
+    res.json({ message: "Property posted successfully" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to post property" });
+  }
+});
+// GET RECOMMENDATIONS BASED ON VIEW HISTORY
+app.get("/api/recommendations", authenticate, async (req, res) => {
+  const userId = req.user.id;
+
+  // get user's viewed properties
+  const [history] = await db.query(
+    "SELECT * FROM view_history h JOIN properties p ON h.property_id = p.id WHERE h.user_id = ?",
+    [userId]
+  );
+
+  if (history.length === 0) {
+    return res.json([]);
+  }
+
+  const preferredType = history[0].type;
+
+  const [recommendations] = await db.query(
+    "SELECT * FROM properties WHERE type = ? LIMIT 5",
+    [preferredType]
+  );
+
+  res.json(recommendations);
+});
+// SEND MESSAGE TO LANDLORD`
+app.post("/api/messages", authenticate, async (req, res) => {
+  const { receiver_id, property_id, message } = req.body;
+
+  // Validate inputs
+  if (!receiver_id || !property_id) {
+    return res.status(400).json({ message: "Missing receiver or property" });
+  }
+
+  if (!message || !message.trim()) {
+    return res.status(400).json({ message: "Message required" });
+  }
+
+  if (message.length > 1000) {
+    return res.status(400).json({ message: "Message too long" });
+  }
+
+  try {
+    // Check receiver exists
+    const [user] = await db.query(
+      "SELECT id FROM users WHERE id = ?",
+      [receiver_id]
+    );
+    if (!user.length) {
+      return res.status(404).json({ message: "Receiver not found" });
+    }
+
+    // Check property exists
+    const [property] = await db.query(
+      "SELECT id FROM properties WHERE id = ?",
+      [property_id]
+    );
+    if (!property.length) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    await db.query(
+      "INSERT INTO messages (sender_id, receiver_id, property_id, message) VALUES (?, ?, ?, ?)",
+      [req.user.id, receiver_id, property_id, message.trim()]
+    );
+
+    res.json({ message: "Message sent" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// GET UNVERIFIED PROPERTIES (ADMIN)
+app.get("/api/admin/properties", authenticate, async (req, res) => {
+
+  if (req.user.role !== "admin") {
+    return res.sendStatus(403);
+  }
+
+  const [rows] = await db.query(
+    "SELECT * FROM properties WHERE is_verified = false"
+  );
+
+  res.json(rows);
+});
+
+// VERIFY PROPERTY (ADMIN)
+app.post("/api/admin/approve/:id", authenticate, async (req, res) => {
+
+  if(req.user.role !== "admin"){
+    return res.sendStatus(403);
+   }
+
+  await db.query(
+    "UPDATE properties SET is_verified = true WHERE id = ?",
+    [req.params.id]
+  );
+});
+// GET PROPERTY DETAILS
+app.get("/api/properties/:id", async (req, res) => {
+  try {
+    const [property] = await db.query(
+      "SELECT * FROM properties WHERE id=?",
+      [req.params.id]
+    );
+
+    if (!property.length) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    const [images] = await db.query(
+      "SELECT * FROM property_images WHERE property_id=?",
+      [req.params.id]
+    );
+
+    res.json({
+      ...property[0],
+      images
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
 // ------------------- START SERVER -------------------
 app.listen(PORT, HOST, () => {
   console.log(`Server running at http://${HOST}:${PORT}`);
