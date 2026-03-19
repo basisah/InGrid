@@ -70,3 +70,17 @@ INSERT INTO properties (title, address, type, price, bedrooms, bathrooms, size, 
 ('Cozy Downtown Condo', '123 Main St, Saskatoon', 'rental', 1800, 1, 1, 650, 'A cozy condo close to university.', 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267', 52.1332, -106.6700, TRUE),
 ('Family Home with Yard', '456 Oak Ave, Regina', 'rental', 2200, 3, 2, 1400, 'Spacious family home with a large yard.', 'https://images.unsplash.com/photo-1570129477492-45c003edd2be', 50.4452, -104.6189, TRUE),
 ('Spacious Modern House', '789 Pine Rd, Prince Albert', 'buy', 350000, 4, 3, 2200, 'Modern house for sale.', 'https://images.unsplash.com/photo-1568605114967-8130f3a36994', 53.2033, -105.7531, FALSE);
+
+CREATE TABLE payments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  property_id INT NOT NULL,
+  check_in DATE NOT NULL,
+  check_out DATE NOT NULL,
+  guests INT DEFAULT 1,
+  amount DECIMAL(10,2) NOT NULL,
+  status ENUM('pending', 'completed', 'refunded') DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (property_id) REFERENCES properties(id)
+);
