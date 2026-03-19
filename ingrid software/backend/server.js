@@ -284,6 +284,35 @@ app.get("/api/properties", async (req, res) => {
   }
 });
 
+// MAKE PAYMENT / BOOK PROPERTY
+app.post("/api/payments", authenticate, async (req, res) => {
+  const { property_id, check_in, check_out, guests, amount } = req.body;
+  const user_id = req.user.id;
+  try {
+    await db.query(
+      "INSERT INTO payments (user_id, property_id, check_in, check_out, guests, amount, status) VALUES (?, ?, ?, ?, ?, ?, 'completed')",
+      [user_id, property_id, check_in, check_out, guests, amount]
+    );
+    res.json({ message: "Booking successful" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Booking failed" });
+  }
+});
+
+// GET USER PAYMENTS
+app.get("/api/payments", authenticate, async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      "SELECT p.*, pr.title, pr.address FROM payments p JOIN properties pr ON p.property_id = pr.id WHERE p.user_id = ?",
+      [req.user.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // GET FURNITURE RECOMMENDATIONS FOR A PROPERTY
 app.get("/api/furniture/:id", async (req, res) => {
   try {
