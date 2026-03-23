@@ -6,25 +6,43 @@ function AdminDashboard() {
   const [properties, setProperties] = useState([]);
   const [activeTab, setActiveTab] = useState("dashboard");
 
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:80";
+  // const API_URL = process.env.REACT_APP_API_URL || "http://localhost:80";
   const token = localStorage.getItem("token");
 
   const fetchUsers = async () => {
-    const res = await fetch(`${API_URL}/api/admin/users`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const data = await res.json();
-    setUsers(data);
+      try {
+        const res = await fetch("/api/admin/users", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!res.ok) {
+          console.error("Access denied:", res.status);
+          setUsers([]);
+          return;
+        }
+
+        const data = await res.json();
+        setUsers(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Fetch error:", err);
+        setUsers([]);
+      }
   };
 
   const fetchProperties = async () => {
-    const res = await fetch(`${API_URL}/api/properties`);
-    const data = await res.json();
-    setProperties(data);
+    try {
+      const res = await fetch("/api/properties");
+      const data = await res.json();
+      setProperties(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setProperties([]);
+    }
   };
+  
 
   const verifyUser = async (id) => {
-    await fetch(`${API_URL}/api/verify-user/${id}`, {
+    await fetch(`/api/verify-user/${id}`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -33,10 +51,13 @@ function AdminDashboard() {
   };
 
   useEffect(() => {
+    if (!token) return; // stop if not logged in
+
     fetchUsers();
     fetchProperties();
   }, []);
-
+  
+  if (!token) return <Navigate to="/login" />;
   return (
     <div className="admin-container">
 
