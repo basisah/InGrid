@@ -77,12 +77,6 @@ app.post("/api/signup", async (req, res) => {
     });
 
     res.json({ message: "Signup successful. Check your email to verify your account." });
-
-    // console.log("Sending email to:", email);
-    // transporter.verify((err, success) => {
-    //   if (err) console.log("EMAIL ERROR:", err);
-    //   else console.log("EMAIL READY");
-    // });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
