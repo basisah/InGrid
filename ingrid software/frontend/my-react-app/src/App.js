@@ -12,6 +12,7 @@ import PropertyDetail from "./listingpage/propertydetail";
 import Compare from "./listingpage/compare";
 import PostProperty from "./property/property";
 import AdminDashboard from "./adminpage/AdminDashboard";
+import Verify from "./pages/verify";
 
 // PrivateRoute component to guard protected routes
 // const PrivateRoute = ({ children }) => {
@@ -30,6 +31,7 @@ function App() {
         {/* Public Routes */}
         <Route path="/home" element={<Home />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/verify/:token" element={<Verify />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/reset/:token" element={<ResetPassword />} />
