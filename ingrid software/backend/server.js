@@ -4,7 +4,8 @@ const express = require('express');
 const mysql = require("mysql2/promise");
 const path = require("path");
 const bcrypt = require("bcrypt");
-// const crypto = require("crypto");
+const crypto = require("crypto");
+const cors = require("cors");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 
@@ -21,7 +22,10 @@ const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public"))); // optional frontend
-
+app.use(cors({
+  origin: "http://localhost:3000",
+  credentials: true
+}));
 // --- MySQL Pool ---
 const db = mysql.createPool({
   host: process.env.DB_HOST || "db",
@@ -54,10 +58,15 @@ app.post("/api/signup", async (req, res) => {
 
     // Send verification email
     const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: GMAIL_USER, pass: GMAIL_PASS }
+        service: "gmail",
+        auth: {
+          user: GMAIL_USER,
+          pass: GMAIL_PASS
+        },
+        tls: {
+          rejectUnauthorized: false
+        }
     });
-
     await transporter.sendMail({
       from: `Ingrid <${GMAIL_USER}>`,
       to: email,
@@ -69,6 +78,11 @@ app.post("/api/signup", async (req, res) => {
 
     res.json({ message: "Signup successful. Check your email to verify your account." });
 
+    // console.log("Sending email to:", email);
+    // transporter.verify((err, success) => {
+    //   if (err) console.log("EMAIL ERROR:", err);
+    //   else console.log("EMAIL READY");
+    // });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -126,7 +140,13 @@ app.post("/api/forgot", async (req, res) => {
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      auth: { user: GMAIL_USER, pass: GMAIL_PASS }
+      auth: {
+        user: GMAIL_USER,
+        pass: GMAIL_PASS
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
     });
 
     await transporter.sendMail({
