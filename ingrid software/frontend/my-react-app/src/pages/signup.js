@@ -35,9 +35,9 @@ function Signup() {
     }
 
     try {
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:80";
+      // const API_URL = process.env.REACT_APP_API_URL || "http://localhost:80";
 
-      const response = await fetch(`${API_URL}/api/signup`, {
+      const response = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -61,9 +61,10 @@ function Signup() {
       } else {
         setMessage(data.message || "Signup failed");
       }
-    } catch {
-      setMessage("Server error. Try again later.");
-    }
+    } catch (err) {
+        console.error("Frontend signup error:", err);
+        setMessage("Server error. Try again later.");
+      }
   };
 
   return (
