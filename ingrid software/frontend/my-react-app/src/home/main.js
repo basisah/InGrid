@@ -11,10 +11,10 @@ function Main() {
           compare and choose with confidence.
         </p>
         <div className="main-buttons">
-          <Link to="/listing">
+          <Link to="/listings">
             <button className="primary-btn">Browse Listings</button>
           </Link>
-          <Link to="/propertyList">
+          <Link to="/post-property">
             <button className="secondary-btn">Post a Property</button>
           </Link>
         </div>

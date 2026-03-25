@@ -8,7 +8,7 @@ function SearchBar({ setProperties }) {
   const handleSearch = async () => {
     try {
       const response = await fetch(
-        `http://localhost:80/api/properties?location=${location}&type=${type}&maxPrice=${maxPrice}`
+        `/api/properties?location=${location}&type=${type}&maxPrice=${maxPrice}`
       );
       const data = await response.json();
       setProperties(data);

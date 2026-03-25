@@ -60,6 +60,18 @@ CREATE TABLE properties (
   FOREIGN KEY (landlord_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+INSERT INTO users 
+(first_name, last_name, email, password, role, is_verified)
+VALUES 
+(
+'Admin',
+'User',
+'admin@ingrid.com',
+'$2b$10$7QJ6c8C5GqC0qYw7S0qH7eK5l8cNQW5p0kq0Oe6O8vWJQmTq6qM7y',
+'admin',
+TRUE
+);
+
 INSERT INTO properties (title, address, type, price, bedrooms, bathrooms, size, description, main_image, latitude, longitude, is_verified) VALUES
 ('Cozy Downtown Condo', '123 Main St, Saskatoon', 'rental', 1800, 1, 1, 650, 'A cozy condo close to university.', 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267', 52.1332, -106.6700, TRUE),
 ('Family Home with Yard', '456 Oak Ave, Regina', 'rental', 2200, 3, 2, 1400, 'Spacious family home with a large yard.', 'https://images.unsplash.com/photo-1570129477492-45c003edd2be', 50.4452, -104.6189, TRUE),

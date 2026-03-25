@@ -9,7 +9,7 @@ function Profile() {
   const [savedListings, setSavedListings] = useState([]);
   const [history, setHistory] = useState([]);
 
-  //state for verification status
+  // state for verification status
   const [verificationStatus, setVerificationStatus] = useState("pending");
 
   useEffect(() => {
@@ -49,7 +49,7 @@ function Profile() {
         //Add fetch for verification status
         const verifyRes = await fetch(`${API_URL}/api/verify-status/${data.user.id}`, {
         headers: { "Authorization": `Bearer ${token}` }
-});
+  });
         const verifyData = await verifyRes.json();
         setVerificationStatus(verifyData.status);
       } catch (error) {
@@ -74,7 +74,7 @@ function Profile() {
 
   return (
     <div className="profile-page">
-      //Add verification status badge next to user's name
+      {/* Add verification status badge next to user's name */}
       <div className="profile-card">
         <h2> 
           Welcome, {user.first_name} {user.last_name}
@@ -87,7 +87,7 @@ function Profile() {
           {verificationStatus === "rejected" && (
           <span style={{ marginLeft: "10px", color: "#e74c3c" }}>❌ Verification Rejected</span>
         )}
-</h2>
+        </h2>
 
         <div className="profile-info">
           <p><strong>Email:</strong> {user.email}</p>
@@ -133,6 +133,8 @@ function Profile() {
       </div>
     )}
   </div>
+
+    
 </div>
   );
 }
