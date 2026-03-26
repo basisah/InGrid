@@ -1,17 +1,36 @@
 import { Link } from "react-router-dom"; //basisah - added Link import for navigation
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 
 function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const navigate = useNavigate();
+  const dropdownRef = useRef(null); // Close dropdown when clicking outside
+
+ // basisah -Check login status on mount
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) setIsLoggedIn(true);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);    
+
     const handleLogout = () => {
     localStorage.removeItem("token");
-    window.location.reload();
+    setIsLoggedIn(false);
+    setDropdownOpen(false);
+    navigate("/home");
   };
 
   return (
@@ -22,16 +41,38 @@ function Navbar() {
         <li><Link to="/home">Home</Link></li>
         <li><Link to="/listings">Listings</Link></li>
         <li><Link to="/compare">Compare</Link></li>
-        <li><Link to="/post-property">Post Property</Link></li>
+        <li><Link to="/post-property">Become a Landlord</Link></li>
 
+        //Added conditional rendering for profile dropdown
+        <li className="profile-menu" ref={dropdownRef}>
+          <div className="profile-icon" onClick={() => setDropdownOpen(!dropdownOpen)}>
+            ☰ 👤
+          </div>
 
-        {isLoggedIn ? (
-          <li className="login-btn" onClick={handleLogout}>
-            Logout
-          </li>
-        ) : (
-          <li className="login-btn"><Link to="/login">Login</Link></li>
-        )}
+          {dropdownOpen && (
+          <div className="profile-dropdown" >
+            {isLoggedIn ? (
+              <>
+                <Link to="/wishlist" onClick={() => setDropdownOpen(false)}>Wishlist</Link>
+                <Link to="/trips" onClick={() => setDropdownOpen(false)}>Trip History</Link>
+                <Link to="/messages" onClick={() => setDropdownOpen(false)}>Messages</Link>
+                <Link to="/profile" onClick={() => setDropdownOpen(false)}>Profile</Link>
+                <hr />
+                <Link to="/settings" onClick={() => setDropdownOpen(false)}>Account Settings</Link>
+                <Link to="/help" onClick={() => setDropdownOpen(false)}>Help Centre</Link>
+                <hr />
+                <span onClick={handleLogout}>Logout</span>
+              </>
+            ) : (
+              <>
+                <Link to="/help" onClick={() => setDropdownOpen(false)}>Help Centre</Link>
+                <hr />
+                <Link to="/login" onClick={() => setDropdownOpen(false)}>Login / Signup</Link>
+              </>
+            )}
+            </div>
+          )}
+        </li>
       </ul>
     </nav>
   );
