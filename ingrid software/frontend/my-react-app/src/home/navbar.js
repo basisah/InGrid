@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"; //basisah - added Link import for navigation
-import React, { use, useEffect, useState } from "react";
+import React, {  useEffect, useState, useRef } from "react";
 
 function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
