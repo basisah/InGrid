@@ -53,9 +53,9 @@ const isPasswordValid = Object.values(passwordRules).every(Boolean);
     setLoading(true);
 
     try {
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:80";
+      // verify token and reset password
 
-      const response = await fetch(`${API_URL}/api/reset/${token}`, {
+      const response = await fetch(`/api/reset/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password })

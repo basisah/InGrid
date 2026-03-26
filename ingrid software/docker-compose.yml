@@ -24,9 +24,9 @@ services:
       DB_NAME: ingriddb
       EMAIL_SECRET: supersecretemailkey
       LOGIN_SECRET: supersecretloginkey
-      GMAIL_USER: yourgmail@gmail.com
-      GMAIL_PASS: your_app_password
-      FRONTEND_URL: http://frontend:3000
+      GMAIL_USER: nezzyking724@gmail.com
+      GMAIL_PASS: ripjxbgkhfrdxizw
+      FRONTEND_URL: http://localhost:3000
 
 
   db:

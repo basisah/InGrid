@@ -7,17 +7,18 @@ import ForgotPassword from "./pages/forget";
 import ResetPassword from "./pages/reset";
 import Profile from "./userprofile/profile";
 import Home from "./home/home";
-
 import Listings from "./listingpage/listing";
 import PropertyDetail from "./listingpage/propertydetail";
 import Compare from "./listingpage/compare";
-// import AdminDashboard from "./pages/AdminDashboard";
+import PostProperty from "./property/property";
+import AdminDashboard from "./adminpage/AdminDashboard";
+import Verify from "./pages/verify";
 
 // PrivateRoute component to guard protected routes
-const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  return token ? children : <Navigate to="/login" />;
-};
+// const PrivateRoute = ({ children }) => {
+//   const token = localStorage.getItem("token");
+//   return token ? children : <Navigate to="/login" />;
+// };
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         {/* Public Routes */}
         <Route path="/home" element={<Home />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/verify/:token" element={<Verify />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/reset/:token" element={<ResetPassword />} />
@@ -37,6 +39,8 @@ function App() {
         <Route path="/listings" element={<Listings />} />
         <Route path="/property/:id" element={<PropertyDetail />} />
         <Route path="/compare" element={<Compare />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/post-property" element={<PostProperty />} />
 
         {/* nelson update - i commented out the private routes because i want to test the public routes first and i need to see the public routes work correctly */}
         

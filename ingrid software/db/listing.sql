@@ -1,20 +1,21 @@
-CREATE TABLE properties (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    title VARCHAR(255),
-    description TEXT,
-    type ENUM('rental','short-term','buy'),
-    price DECIMAL(12,2),
-    bedrooms INT,
-    bathrooms INT,
-    size INT,
-    address VARCHAR(255),
-    latitude DECIMAL(10,8),
-    longitude DECIMAL(11,8),
-    seller_id INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (seller_id) REFERENCES users(id)
-);
+-- CREATE TABLE properties (
+--     id INT PRIMARY KEY AUTO_INCREMENT,
+--     title VARCHAR(255),
+--     description TEXT,
+--     type ENUM('rental','short-term','buy'),
+--     price DECIMAL(12,2),
+--     bedrooms INT,
+--     bathrooms INT,
+--     size INT,
+--     address VARCHAR(255),
+--     latitude DECIMAL(10,8),
+--     longitude DECIMAL(11,8),
+--     seller_id INT,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     FOREIGN KEY (seller_id) REFERENCES users(id)
+-- );
 
+-- nelson - i commented out the above code because i moved the properties table to init.sql and i added more columns to it so i will just keep the new version of the properties table in init.sql and delete this one
 CREATE TABLE property_images (
     id INT PRIMARY KEY AUTO_INCREMENT,
     property_id INT,
@@ -65,6 +66,15 @@ CREATE TABLE view_history (
 );
 ALTER TABLE properties ADD COLUMN is_verified BOOLEAN DEFAULT FALSE;
 ALTER TABLE properties ADD COLUMN main_image VARCHAR(500);
+
+CREATE TABLE messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  sender_id INT,
+  receiver_id INT,
+  property_id INT,
+  message TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 INSERT INTO properties (title, address, type, price, bedrooms, bathrooms, size, description, main_image, latitude, longitude, is_verified) VALUES
 ('Cozy Downtown Condo', '123 Main St, Saskatoon', 'rental', 1800, 1, 1, 650, 'A cozy condo close to university.', 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267', 52.1332, -106.6700, TRUE),
