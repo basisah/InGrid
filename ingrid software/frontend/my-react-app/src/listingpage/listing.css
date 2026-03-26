@@ -95,3 +95,124 @@
 .book-btn:hover {
   background: #1b4332;
 }
+
+/* BOOKING CARD */
+.booking-card {
+  width: 340px;
+  flex-shrink: 0;
+}
+
+.booking-card-inner {
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 20px;
+}
+
+.booking-card h2 {
+  margin: 0 0 20px;
+}
+
+.booking-card h2 span {
+  font-size: 16px;
+  font-weight: normal;
+  color: #555;
+}
+
+.booking-inputs {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.booking-dates {
+  display: flex;
+}
+
+.booking-date-field {
+  flex: 1;
+  padding: 12px;
+  border-right: 1px solid #ddd;
+}
+
+.booking-date-field:last-child {
+  border-right: none;
+}
+
+.booking-date-field label {
+  display: block;
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.booking-date-field input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+}
+
+.booking-guests {
+  padding: 12px;
+  border-top: 1px solid #ddd;
+}
+
+.booking-guests label {
+  display: block;
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.booking-guests select {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+}
+
+.booking-total {
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+.reserve-btn {
+  width: 100%;
+  padding: 14px;
+  background: #1b5e20;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.reserve-btn:hover {
+  background: #145214;
+}
+
+.booking-note {
+  text-align: center;
+  color: #777;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.booking-message-success {
+  text-align: center;
+  color: #27ae60;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.booking-message-error {
+  text-align: center;
+  color: #e74c3c;
+  font-weight: bold;
+  margin-top: 10px;
+}
