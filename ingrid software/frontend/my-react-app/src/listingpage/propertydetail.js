@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./listing.css";
@@ -53,11 +53,13 @@ const handleReserve = async () => {
   if (!property) return <div>Loading...</div>;
 
   return (
-    <div className="property-detail">
+    <div className="property-detail" style={{ display: "flex", gap: "40px", alignItems: "flex-start" }}> 
       {/* IMAGE GALLERY */}
-      <div className="gallery">
-        {property.images?.map((img) => (
-          <img key={img.id} src={img.image_url} alt="property" />
+      <div style={{ flex: 1 }}>
+        {/*hardcoding the flex layout because it kept showing at the bottom of page */}
+        <div className="gallery">
+          {property.images?.map((img) => (
+            <img key={img.id} src={img.image_url} alt="property" />
         ))}
       </div>
 
@@ -104,6 +106,7 @@ const handleReserve = async () => {
             </div>
           ))}
         </div>
+      </div>
       </div>
       {/* basisah - added Airbnb-style booking card with
        check-in, checkout, guests and reserve button */}
