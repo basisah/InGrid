@@ -42,11 +42,11 @@ function Navbar() {
         <li><Link to="/listings">Listings</Link></li>
         <li><Link to="/compare">Compare</Link></li>
         <li><Link to="/post-property">Become a Landlord</Link></li>
-
-        //Added conditional rendering for profile dropdown
+        {/* basisah - Added conditional rendering for profile dropdown and dropdown button */}
         <li className="profile-menu" ref={dropdownRef}>
+          {/* Dropdown button that toggles menu open/closed */}
           <div className="profile-icon" onClick={() => setDropdownOpen(!dropdownOpen)}>
-            ☰ 👤
+            ☰ 
           </div>
 
           {dropdownOpen && (
