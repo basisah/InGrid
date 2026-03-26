@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
+<<<<<<< HEAD
 import {Navigate} from "react-router-dom";
+=======
+import { Navigate } from "react-router-dom";
+>>>>>>> 9d866fcba2ddb5eeb84a652927a784f8b54e566b
 import "./admin.css";
 
 function AdminDashboard() {
