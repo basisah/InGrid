@@ -14,7 +14,6 @@ function Navbar() {
     if (token) setIsLoggedIn(true);
   }, []);
 
-<<<<<<< HEAD
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -27,8 +26,6 @@ function Navbar() {
     };
   }, []);    
 
-=======
->>>>>>> 9d866fcba2ddb5eeb84a652927a784f8b54e566b
     const handleLogout = () => {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
@@ -44,7 +41,6 @@ function Navbar() {
         <li><Link to="/home">Home</Link></li>
         <li><Link to="/listings">Listings</Link></li>
         <li><Link to="/compare">Compare</Link></li>
-<<<<<<< HEAD
         <li><Link to="/post-property">Become a Landlord</Link></li>
         {/* basisah - Added conditional rendering for profile dropdown and dropdown button */}
         <li className="profile-menu" ref={dropdownRef}>
@@ -52,10 +48,6 @@ function Navbar() {
           <div className="profile-icon" onClick={() => setDropdownOpen(!dropdownOpen)}>
             ☰ 
           </div>
-=======
-        <li><Link to="/post-property">Post Property</Link></li>
-
->>>>>>> 9d866fcba2ddb5eeb84a652927a784f8b54e566b
 
           {dropdownOpen && (
           <div className="profile-dropdown" >
