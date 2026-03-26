@@ -64,8 +64,7 @@ CREATE TABLE view_history (
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (property_id) REFERENCES properties(id)
 );
-ALTER TABLE properties ADD COLUMN is_verified BOOLEAN DEFAULT FALSE;
-ALTER TABLE properties ADD COLUMN main_image VARCHAR(500);
+
 
 CREATE TABLE messages (
   id INT AUTO_INCREMENT PRIMARY KEY,
