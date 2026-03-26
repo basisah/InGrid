@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
+//mking changes to profilepage
 function Profile() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [message, setMessage] = useState("");
+  const [trips, setTrips] = useState([]); //exchanged saved listings,history for trips
   const [loading, setLoading] = useState(true);
-  const [savedListings, setSavedListings] = useState([]);
-  const [history, setHistory] = useState([]);
+  const [verificationHistory, setVerificationHistory] = useState("pending");
 
   // state for verification status
-  const [verificationStatus, setVerificationStatus] = useState("pending");
+  //const [verificationStatus, setVerificationStatus] = useState("pending");
 
   useEffect(() => {
     const fetchProfile = async () => {
       const token = localStorage.getItem("token");
-
       if (!token) {
         navigate("/login"); // redirect if no token
         return;
