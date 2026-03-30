@@ -107,6 +107,9 @@ const handleReserve = async () => {
               <p>${item.price}</p>
               <p>{item.room}</p>
               <p>{item.fits ? "Fits in room" : "Does not fit"}</p>
+              <p style={{ color: item.fits ? "green" : "red" }}>
+                {item.reason}
+              </p>
             </div>
           ))}
         </div>
