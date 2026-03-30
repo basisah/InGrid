@@ -110,6 +110,7 @@ const handleReserve = async () => {
               <p style={{ color: item.fits ? "green" : "red" }}>
                 {item.reason}
               </p>
+              <p>Clearance Space: {item.clearance_space !== null ? item.clearance_space : "N/A"}</p>
             </div>
           ))}
         </div>
