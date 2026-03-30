@@ -375,7 +375,7 @@ app.get("/api/furniture/:id", async (req, res) => {
         id: 3,
         name: "Dining Table",
         price: 299,
-        image_url: "https://unsplash.com/photos/a-dining-room-with-a-table-and-chairs-PwmeVgE6JiI",
+        image_url: "https://plus.unsplash.com/premium_photo-1684445034959-b3faeb4597d2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8ZGluaW5nJTIwdGFibGV8ZW58MHx8MHx8fDA%3D",
         room: "Dining Room",
         width: 9,
         depth: 5
@@ -384,12 +384,23 @@ app.get("/api/furniture/:id", async (req, res) => {
 
     const furnitureRecommendations = furnitureItems.map((item) => {
       const room = rooms.find((r) => r.name === item.room);
-      const fits = room && item.width <= room.width && item.depth <= room.depth;
+
+      if (!room) {
+        return {
+          ...item,
+          fits: false,
+          clearance_space: null,
+          reason: "No matching room found"
+        };
+      }
+
+      const fits = item.width <= room.width && item.depth <= room.depth;
 
       return {
         ...item,
         fits,
-        clearance_space: room ? (room.width - item.width) * (room.depth - item.depth) : null
+        clearance_space: fits ? (room.width - item.width) * (room.depth - item.depth) : null,
+        reason: fits ? "Fits in the room" : "Too large for the room"
       };
     });
 
