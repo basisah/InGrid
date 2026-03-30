@@ -106,11 +106,18 @@ const handleReserve = async () => {
               <p>{item.name}</p>
               <p>${item.price}</p>
               <p>{item.room}</p>
-              <p>{item.fits ? "Fits in room" : "Does not fit"}</p>
+              <p style={{
+                  fontWeight: "bold",
+                  color: item.fits ? "green" : "red"}}>
+                {item.fits ? "Fits in room" : "Does not fit"}</p>
               <p style={{ color: item.fits ? "green" : "red" }}>
                 {item.reason}
               </p>
-              <p>Clearance Space: {item.clearance_space !== null ? item.clearance_space : "N/A"}</p>
+              <p>Clearance Space:{" "}
+                {item.clearance_space !== null
+                  ? Number(item.clearance_space).toFixed(2)
+                  : "N/A"}
+              </p>
             </div>
           ))}
         </div>
