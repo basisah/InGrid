@@ -357,7 +357,7 @@ app.get("/api/furniture/:id", async (req, res) => {
         id: 1,
         name: "Compact Sofa",
         price: 499,
-        image_url: "https://via.placeholder.com/200?text=Compact+Sofa",
+        image_url: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7",
         room: "Living Room",
         width: 6,
         depth: 3
@@ -366,7 +366,7 @@ app.get("/api/furniture/:id", async (req, res) => {
         id: 2,
         name: "Queen Bed",
         price: 699,
-        image_url: "https://via.placeholder.com/200?text=Queen+Bed",
+        image_url: "https://images.unsplash.com/photo-1505693314120-0d443867891c",
         room: "Bedroom",
         width: 5,
         depth: 7
@@ -375,7 +375,7 @@ app.get("/api/furniture/:id", async (req, res) => {
         id: 3,
         name: "Dining Table",
         price: 299,
-        image_url: "https://via.placeholder.com/200?text=Dining+Table",
+        image_url: "https://unsplash.com/photos/a-dining-room-with-a-table-and-chairs-PwmeVgE6JiI",
         room: "Dining Room",
         width: 9,
         depth: 5
