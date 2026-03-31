@@ -1,6 +1,5 @@
 import Navbar from "./navbar";
 import Main from "./main";
-import SearchBar from "./searchbar";
 import Features from "./features";
 import Footer from "./footer";
 import PropertyList from "./propertyList";
@@ -15,7 +14,6 @@ function Home() {
     <>
       <Navbar />
       <Main />
-      <SearchBar setProperties={setProperties} />
       <Features />
       <PropertyList properties={properties} />
       <Footer />

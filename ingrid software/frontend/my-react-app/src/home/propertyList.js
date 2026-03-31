@@ -11,10 +11,7 @@ function PropertyList({ properties }) {
         ) : (
           properties.map((property) => (
             <div className="property-card" key={property.id}>
-              <img
-                src="https://via.placeholder.com/300"
-                alt="property"
-              />
+              <img src={property.main_image} alt="property" />
               <h3>{property.title}</h3>
               <p>{property.address}</p>
               <p className="price">${property.price}</p>
