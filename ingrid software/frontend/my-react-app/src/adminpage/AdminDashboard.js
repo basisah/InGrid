@@ -1,39 +1,43 @@
 import React, { useEffect, useState } from "react";
 
 import { Navigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import "./admin.css";
 
 function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [properties, setProperties] = useState([]);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const navigate = useNavigate();
+  const [pendingUsers, setPendingUsers] = useState([]);
 
-  // const API_URL = process.env.REACT_APP_API_URL || "http://localhost:80";
   const token = localStorage.getItem("token");
 
   const fetchUsers = async () => {
-      try {
-        const res = await fetch("/api/admin/users", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+    try {
+      const res = await fetch("/api/admin/users", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-        if (!res.ok) {
-          console.error("Access denied:", res.status);
-          setUsers([]);
-          return;
-        }
-
-        const data = await res.json();
-        setUsers(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Fetch error:", err);
+      if (!res.ok) {
+        console.error("Access denied:", res.status);
         setUsers([]);
+        return;
       }
+
+      const data = await res.json();
+      setUsers(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setUsers([]);
+    }
   };
 
   const fetchProperties = async () => {
     try {
-      const res = await fetch("/api/properties");
+      const res = await fetch("/api/admin/properties", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const data = await res.json();
       setProperties(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -41,7 +45,27 @@ function AdminDashboard() {
       setProperties([]);
     }
   };
-  
+  const approveProperty = async (id) => {
+    await fetch(`/api/admin/approve/${id}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    fetchProperties(); // refresh list
+  };
+  const fetchPendingUsers = async () => {
+    try {
+      const res = await fetch("/api/admin/pending-users", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await res.json();
+      setPendingUsers(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+      setPendingUsers([]);
+    }
+  };
 
   const verifyUser = async (id) => {
     await fetch(`/api/verify-user/${id}`, {
@@ -53,13 +77,21 @@ function AdminDashboard() {
   };
 
   useEffect(() => {
-    if (!token) return; // stop if not logged in
+    if (!token) {
+      navigate("/login");
+      return;
+    }
 
     fetchUsers();
     fetchProperties();
+    fetchPendingUsers();
   }, []);
-  
+
   if (!token) return <Navigate to="/login" />;
+
+  // proper count (non-admin users)
+  const nonAdminUsers = users.filter(u => u.role !== "admin");
+
   return (
     <div className="admin-container">
 
@@ -67,15 +99,24 @@ function AdminDashboard() {
       <div className="admin-sidebar">
         <h2>Ingrid Admin</h2>
 
-        <button onClick={() => setActiveTab("dashboard")}>
+        <button 
+          className={activeTab === "dashboard" ? "active" : ""}
+          onClick={() => setActiveTab("dashboard")}
+        >
           Dashboard
         </button>
 
-        <button onClick={() => setActiveTab("users")}>
+        <button 
+          className={activeTab === "users" ? "active" : ""}
+          onClick={() => setActiveTab("users")}
+        >
           Users
         </button>
 
-        <button onClick={() => setActiveTab("properties")}>
+        <button 
+          className={activeTab === "properties" ? "active" : ""}
+          onClick={() => setActiveTab("properties")}
+        >
           Properties
         </button>
       </div>
@@ -95,15 +136,14 @@ function AdminDashboard() {
               </div>
 
               <div className="stat-card">
-                <h3>Total Properties</h3>
+                <h3>Pending Properties</h3>
                 <p>{properties.length}</p>
               </div>
 
+              {/*  FIXED CARD */}
               <div className="stat-card">
-                <h3>Pending Verification</h3>
-                <p>
-                  {users.filter(u => u.role === "user").length}
-                </p>
+                <h3>Pending Users</h3>
+                <p>{pendingUsers.length}</p>
               </div>
 
             </div>
@@ -131,12 +171,22 @@ function AdminDashboard() {
                     <td>{user.email}</td>
                     <td>{user.role}</td>
                     <td>
-                      <button
-                        className="verify-btn"
-                        onClick={() => verifyUser(user.id)}
-                      >
-                        Verify
-                      </button>
+                      {/* don't verify admins */}
+                      {user.role === "admin" ? (
+                        <span style={{ color: "gray" }}>—</span>
+                      ) : (
+                        <button
+                          className="verify-btn"
+                          onClick={() => verifyUser(user.id)}
+                        >
+                          Verify
+                        </button>
+                      )}
+                    </td>
+                    <td>
+                      {pendingUsers.find(p => p.id === user.id) && (
+                        <span style={{ color: "#f39c12" }}>Pending</span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -148,12 +198,12 @@ function AdminDashboard() {
 
         {activeTab === "properties" && (
           <div>
-            <h2>Property Listings</h2>
+            <h2>Pending Property Listings</h2>
 
             <div className="admin-properties">
 
               {properties.map(p => (
-                <div className="property-card" key={p.id}>
+                <div className="property-card admin-card" key={p.id}>
 
                   <img src={p.main_image} alt="property"/>
 
@@ -161,6 +211,12 @@ function AdminDashboard() {
                   <p>{p.address}</p>
                   <p>${p.price}</p>
 
+                  <button
+                    className="approve-btn"
+                    onClick={() => approveProperty(p.id)}
+                  >
+                    Approve
+                  </button>
                 </div>
               ))}
 
