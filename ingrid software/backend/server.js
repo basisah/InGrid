@@ -672,6 +672,57 @@ app.get("/api/messages/:propertyId/:receiverId", async (req, res) => {
   } catch (err) {
     console.error("GET /api/messages error:", err);
     res.status(500).json({ message: err.sqlMessage || "Failed to load messages" });
+// SAVE LISTING
+app.post("/api/save/:id", authenticate, async (req, res) => {
+  const userId = req.user.id;
+  const propertyId = req.params.id;
+
+  try {
+    await db.query(
+      "INSERT IGNORE INTO saved_listings (user_id, property_id) VALUES (?, ?)",
+      [userId, propertyId]
+    );
+
+    res.json({ message: "Saved!" });
+  } catch (err) {
+    res.status(500).json({ message: "Error saving listing" });
+  }
+});
+
+// REMOVE SAVED
+app.delete("/api/save/:id", authenticate, async (req, res) => {
+  const userId = req.user.id;
+  const propertyId = req.params.id;
+
+  try {
+    await db.query(
+      "DELETE FROM saved_listings WHERE user_id=? AND property_id=?",
+      [userId, propertyId]
+    );
+
+    res.json({ message: "Removed" });
+  } catch (err) {
+    res.status(500).json({ message: "Error removing listing" });
+  }
+});
+// GET PENDING USERS (ADMIN)
+app.get("/api/admin/pending-users", authenticate, async (req, res) => {
+
+  if (req.user.role !== "admin") {
+    return res.sendStatus(403);
+  }
+
+  try {
+    const [rows] = await db.query(`
+      SELECT u.id, u.first_name, u.last_name, u.email, u.role
+      FROM users u
+      JOIN account_verification av ON u.id = av.user_id
+      WHERE av.status = 'pending'
+    `);
+
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 // ------------------- START SERVER -------------------
