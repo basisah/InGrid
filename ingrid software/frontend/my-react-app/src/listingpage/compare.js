@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./listing.css";
 
 export default function Compare() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [properties, setProperties] = useState([]);
 
   useEffect(() => {
