@@ -15,6 +15,7 @@ import Compare from "./listingpage/compare";
 import PostProperty from "./property/property";
 import AdminDashboard from "./adminpage/AdminDashboard";
 import Verify from "./pages/verify";
+import ChatPage from "./pages/chat";
 
 
 // PrivateRoute component to guard protected routes
@@ -46,6 +47,7 @@ function App() {
         <Route path="/post-property" element={<PostProperty />} />
         <Route path="/payment" element={<Payment />} /> 
         <Route path="/wishlist" element={<Wishlist />} /> 
+        <Route path="/chat/:propertyId/:receiverId" element={<ChatPage />} />
 
         {/* nelson update - i commented out the private routes because i want to test the public routes first and i need to see the public routes work correctly */}
         
