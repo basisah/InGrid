@@ -80,7 +80,6 @@ function Profile() {
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "30px", marginBottom: "8px" }}>
             <h4 style={{ margin: 0 }}>Current Reservations</h4>
-            <span style={{ color: "#1b5e20", cursor: "pointer", fontSize: "14px" }}>See all →</span>
           </div>
           <hr style={{ marginBottom: "12px" }} />
           {currentTrips.length === 0 ? (
@@ -107,15 +106,15 @@ function Profile() {
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <h3 style={{ margin: 0 }}>Previous Trips</h3>
-            <span style={{ color: "#1b5e20", cursor: "pointer", fontSize: "14px" }}>See all →</span>
+            <span onClick={() => navigate("/trips")} style={{ color: "#1b5e20", cursor: "pointer", fontSize: "14px" }}>See all →</span>
           </div>
           <hr style={{ marginBottom: "20px" }} />
 
-          {trips.length === 0 ? (
+          {pastTrips.length === 0 ? (
             <p style={{ color: "#777" }}>No past trips yet.</p> //basisah - added message for no past trips
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-              {trips.map(trip => (
+              {pastTrips.map(trip => (
                 <div key={trip.id} style={{ borderRadius: "14px", overflow: "hidden", boxShadow: "0 4px 15px rgba(0,0,0,0.08)", cursor: "pointer" }}
                   onClick={() => navigate(`/property/${trip.property_id}`)}>
                   <div style={{ height: "140px", background: "#e0e0e0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "40px" }}>
@@ -124,7 +123,7 @@ function Profile() {
                   <div style={{ padding: "12px" }}>
                     <strong>{trip.title}</strong>
                     <p style={{ fontSize: "13px", color: "#555", margin: "4px 0" }}>{trip.address}</p>
-                    <p style={{ fontSize: "13px", color: "#1b5e20", margin: "0" }}>${trip.amount} · {formatDate(trip.check_in)} → {formatDate(trip.check_out)}</p> // format dates to be more readable
+                    <p style={{ fontSize: "13px", color: "#1b5e20", margin: "0" }}>${trip.amount} · {formatDate(trip.check_in)} → {formatDate(trip.check_out)}</p> 
                   </div>
                 </div>
               ))}
