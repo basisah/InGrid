@@ -104,11 +104,26 @@ const handleReserve = async () => {
         <div className="furniture-grid">
           {furniture.map((item) => (
             <div key={item.id} className="furniture-card">
-              <img src={item.image_url} alt="furniture" />
+              <img 
+                src={item.image_url} 
+                alt="furniture" 
+                style={{ width: "150px", height: "120px", objectFit: "cover", borderRadius: "8px" }} 
+              />
               <p>{item.name}</p>
               <p>${item.price}</p>
               <p>{item.room}</p>
-              <p>{item.fits ? "Fits in room" : "Does not fit"}</p>
+              <p style={{
+                  fontWeight: "bold",
+                  color: item.fits ? "green" : "red"}}>
+                {item.fits ? "Fits in room" : "Does not fit"}</p>
+              <p style={{ color: item.fits ? "green" : "red" }}>
+                {item.reason}
+              </p>
+              <p>Clearance Space:{" "}
+                {item.clearance_space !== null
+                  ? Number(item.clearance_space).toFixed(2)
+                  : "N/A"}
+              </p>
             </div>
           ))}
         </div>
