@@ -25,7 +25,7 @@ const total = nights * property?.price;
 
 const handleReserve = async () => {
   const token = localStorage.getItem("token");
-  if (!token) { navigate("/login"); return; }
+  if (!token) { setShowLoginPopup(true); return; }
   if (!checkIn || !checkOut) { setBookingMessage("Please select dates."); return; }
   navigate("/payment", { 
     state: { 
