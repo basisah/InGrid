@@ -78,21 +78,20 @@ function Profile() {
             📍 {user.home_address || "Saskatoon, Canada"}
           </p>
 
-          <h4 style={{ marginBottom: "8px" }}>Bio</h4>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "30px", marginBottom: "8px" }}>
+            <h4 style={{ margin: 0 }}>Current Reservations</h4>
+            <span style={{ color: "#1b5e20", cursor: "pointer", fontSize: "14px" }}>See all →</span>
+          </div>
           <hr style={{ marginBottom: "12px" }} />
-          <p style={{ fontSize: "14px", color: "#777" }}>No bio yet.</p>
-
-          <h4 style={{ marginTop: "30px", marginBottom: "8px" }}>Current Reservations</h4>
-          <hr style={{ marginBottom: "12px" }} />
-          {trips.filter(t => t.status === "completed").length === 0 ? (
+          {currentTrips.length === 0 ? (
             <p style={{ fontSize: "14px", color: "#777" }}>No current reservations.</p>
           ) : (
-            trips.filter(t => t.status === "completed").map(t => (
+            currentTrips.map(t => (
               <div key={t.id} style={{ background: "#f5f5f5", borderRadius: "10px", padding: "12px", marginBottom: "10px", fontSize: "14px" }}>
                 <strong>{t.title}</strong>
                 <p style={{ margin: "4px 0", color: "#555" }}>{t.address}</p>
                 <p style={{ margin: "4px 0", color: "#1b5e20" }}>${t.amount}</p>
-                <p style={{ margin: "0", color: "#888" }}>{t.check_in} → {t.check_out}</p>
+                <p style={{ margin: "0", color: "#888" }}>{formatDate(t.check_in)} → {formatDate(t.check_out)}</p>
               </div>
             ))
           )}
