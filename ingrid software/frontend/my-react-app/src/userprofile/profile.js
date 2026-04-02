@@ -80,7 +80,6 @@ function Profile() {
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "30px", marginBottom: "8px" }}>
             <h4 style={{ margin: 0 }}>Current Reservations</h4>
-            <span style={{ color: "#1b5e20", cursor: "pointer", fontSize: "14px" }}>See all →</span>
           </div>
           <hr style={{ marginBottom: "12px" }} />
           {currentTrips.length === 0 ? (
@@ -107,7 +106,7 @@ function Profile() {
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <h3 style={{ margin: 0 }}>Previous Trips</h3>
-            <span style={{ color: "#1b5e20", cursor: "pointer", fontSize: "14px" }}>See all →</span>
+            <span onClick={() => navigate("/trips")} style={{ color: "#1b5e20", cursor: "pointer", fontSize: "14px" }}>See all →</span>
           </div>
           <hr style={{ marginBottom: "20px" }} />
 
