@@ -13,6 +13,24 @@ function Profile() {
   const formatDate = (dateStr) => dateStr?.split("T")[0]; // helper to format date strings
   const currentTrips = trips.filter(t => new Date(t.check_out) >= today); // filter for current/upcoming trips
   const pastTrips = trips.filter(t => new Date(t.check_out) < today); // filter for past trips
+  const [editingPicture, setEditingPicture] = useState(false);
+
+const handlePictureUpload = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onloadend = async () => {
+    const base64 = reader.result;
+    const token = localStorage.getItem("token");
+    await axios.put("/api/profile/picture", 
+      { profile_picture: base64 },
+      { headers: { Authorization: `Bearer ${token}` }}
+    );
+    setUser({ ...user, profile_picture: base64 });
+    setEditingPicture(false);
+  };
+  reader.readAsDataURL(file);
+};
   
 
   useEffect(() => {
