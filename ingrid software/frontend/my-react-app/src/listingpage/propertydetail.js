@@ -143,6 +143,24 @@ const handleReserve = async () => {
         {bookingMessage && <p className={bookingMessage.includes("successful") ? "booking-message-success" : "booking-message-error"}>{bookingMessage}</p>}
       </div>
     </div>
+    {/* basisah - login popup for unauthenticated users */}
+      {showLoginPopup && (
+        <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "white", borderRadius: "16px", padding: "32px", textAlign: "center", width: "340px" }}>
+            <h3 style={{ marginBottom: "12px" }}>Sign in to book</h3>
+            <p style={{ color: "#555", marginBottom: "24px" }}>You need to be logged in to make a reservation.</p>
+            <button onClick={() => navigate("/login")} style={{ width: "100%", padding: "12px", background: "#1b5e20", color: "white", border: "none", borderRadius: "8px", fontSize: "15px", cursor: "pointer", marginBottom: "10px" }}>
+              Log In
+            </button>
+            <button onClick={() => navigate("/signup")} style={{ width: "100%", padding: "12px", background: "white", color: "#1b5e20", border: "1px solid #1b5e20", borderRadius: "8px", fontSize: "15px", cursor: "pointer", marginBottom: "10px" }}>
+              Sign Up
+            </button>
+            <button onClick={() => setShowLoginPopup(false)} style={{ background: "none", border: "none", color: "#777", cursor: "pointer", fontSize: "14px" }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
