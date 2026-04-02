@@ -17,6 +17,7 @@ import PostProperty from "./property/property";
 import AdminDashboard from "./adminpage/AdminDashboard";
 import Verify from "./pages/verify";
 import ChatPage from "./pages/chat";
+import FurnitureStore from "./pages/furniturestore";
 
 // PrivateRoute component to guard protected routes
 // const PrivateRoute = ({ children }) => {
@@ -33,6 +34,7 @@ function App() {
 
         {/* Public Routes */}
         <Route path="/home" element={<Home />} />
+        <Route path="/furniture" element={<FurnitureStore />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify/:token" element={<Verify />} />
         <Route path="/login" element={<Login />} />
@@ -48,6 +50,7 @@ function App() {
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/trips" element={<TripHistory />} />
         <Route path="/chat/:propertyId/:receiverId" element={<ChatPage />} />
+        
 
         {/* nelson update - i commented out the private routes because i want to test the public routes first and i need to see the public routes work correctly */}
 

@@ -410,76 +410,92 @@ app.delete("/api/wishlist/:propertyId", authenticate, async (req, res) => {
   res.json({ message: "Removed from wishlist" });
 });
 
+
+app.get("/api/furniture", async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT * FROM furniture");
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch furniture" });
+  }
+});
 // GET FURNITURE RECOMMENDATIONS FOR A PROPERTY
 app.get("/api/furniture/:id", async (req, res) => {
   try {
     const propertyId = req.params.id;
 
-    const rooms = [
-      { name: "Living Room", width: 12, depth: 15 },
-      { name: "Bedroom", width: 10, depth: 12 },
-      { name: "Dining Room", width: 8, depth: 8 }
-    ];
+    const [propertyRows] = await db.query(
+      "SELECT id, type FROM properties WHERE id = ?",
+      [propertyId]
+    );
 
-    const furnitureItems = [
-      {
-        id: 1,
-        name: "Compact Sofa",
-        price: 499,
-        image_url: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7",
-        room: "Living Room",
-        width: 6,
-        depth: 3
-      },
-      {
-        id: 2,
-        name: "Queen Bed",
-        price: 699,
-        image_url: "https://images.unsplash.com/photo-1505693314120-0d443867891c",
-        room: "Bedroom",
-        width: 5,
-        depth: 7
-      },
-      {
-        id: 3,
-        name: "Dining Table",
-        price: 299,
-        image_url: "https://plus.unsplash.com/premium_photo-1684445034959-b3faeb4597d2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8ZGluaW5nJTIwdGFibGV8ZW58MHx8MHx8fDA%3D",
-        room: "Dining Room",
-        width: 9,
-        depth: 5
-      }
-    ];
+    if (propertyRows.length === 0) {
+      return res.status(404).json({ error: "Property not found" });
+    }
 
-    const furnitureRecommendations = furnitureItems.map((item) => {
-      const room = rooms.find((r) => r.name === item.room);
+    const property = propertyRows[0];
+
+    const [rows] = await db.query(
+      `SELECT f.id, f.name, f.category, f.price, f.image_url, f.color_theme, f.width, f.depth
+       FROM property_furniture pf
+       JOIN furniture f ON pf.furniture_id = f.id
+       WHERE pf.property_id = ?`,
+      [propertyId]
+    );
+
+    const rooms = {
+      "Living Room": { width: 12, depth: 15 },
+      "Bedroom": { width: 10, depth: 12 },
+      "Dining Room": { width: 8, depth: 8 },
+      "Office": { width: 8, depth: 10 },
+      "Storage": { width: 6, depth: 8 }
+    };
+
+    const furnitureWithFitInfo = rows.map((item) => {
+      const room = rooms[item.category];
 
       if (!room) {
         return {
           ...item,
+          room: item.category,
           fits: false,
           clearance_space: null,
-          reason: "No matching room found"
+          reason: "No matching room found for this furniture category"
         };
       }
 
-      const fits = item.width <= room.width && item.depth <= room.depth;
+      const fits =
+        Number(item.width) <= room.width && Number(item.depth) <= room.depth;
 
       return {
         ...item,
+        room: item.category,
         fits,
-        clearance_space: fits ? (room.width - item.width) * (room.depth - item.depth) : null,
+        clearance_space: fits
+          ? (room.width - Number(item.width)) * (room.depth - Number(item.depth))
+          : null,
         reason: fits ? "Fits in the room" : "Too large for the room"
       };
     });
 
-    res.json(furnitureRecommendations);
+    if (property.type !== "buy") {
+      return res.json(
+        furnitureWithFitInfo.map((item) => ({
+          ...item,
+          fits: false,
+          clearance_space: null,
+          reason: "Furniture purchase is only available for buy properties"
+        }))
+      );
+    }
+
+    res.json(furnitureWithFitInfo);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error fetching furniture:", err);
+    res.status(500).json({ error: "Failed to fetch furniture" });
   }
 });
-
 // GET ALL USERS (ADMIN)
 app.get("/api/admin/users", authenticate, async (req, res) => {
 

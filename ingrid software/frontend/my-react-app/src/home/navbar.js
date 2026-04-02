@@ -40,6 +40,7 @@ function Navbar() {
       <ul className="nav-links">
         <li><Link to="/home">Home</Link></li>
         <li><Link to="/listings">Listings</Link></li>
+        <li><Link to="/furniture">Furniture</Link></li>
         <li><Link to="/compare">Compare</Link></li>
         <li><Link to="/post-property">Become a Landlord</Link></li>
         {/* basisah - Added conditional rendering for profile dropdown and dropdown button */}
