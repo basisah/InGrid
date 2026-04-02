@@ -13,6 +13,7 @@ export default function Listings() {
   const [compareList, setCompareList] = useState([]);
   
   const [wishlist, setWishlist] = useState([]);
+  const [wishlistMessage, setWishlistMessage] = useState("");
 
 useEffect(() => {
   const token = localStorage.getItem("token");
