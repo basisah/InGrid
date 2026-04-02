@@ -12,6 +12,28 @@ export default function Listings() {
   });
   const [compareList, setCompareList] = useState([]);
   
+  const [wishlist, setWishlist] = useState([]);
+
+useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+  axios.get("/api/wishlist", { headers: { Authorization: `Bearer ${token}` } })
+    .then(r => setWishlist(r.data))
+    .catch(() => {});
+}, []);
+
+const toggleWishlist = async (e, propertyId) => {
+  e.preventDefault();
+  const token = localStorage.getItem("token");
+  if (!token) return;
+  if (wishlist.includes(propertyId)) {
+    await axios.delete(`/api/wishlist/${propertyId}`, { headers: { Authorization: `Bearer ${token}` } });
+    setWishlist(wishlist.filter(id => id !== propertyId));
+  } else {
+    await axios.post(`/api/wishlist/${propertyId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+    setWishlist([...wishlist, propertyId]);
+  }
+};
 
   const fetchProperties = async () => {
     const API_URL = process.env.REACT_APP_API_URL || ""; //basisah - rremoved the api constant
