@@ -624,6 +624,37 @@ app.get("/api/properties/:id", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+app.get("/api/messages/:propertyId/:receiverId", authenticate, async (req, res) => {
+  const { propertyId, receiverId } = req.params;
+  const currentUserId = req.user.id;
+
+  try {
+    const [rows] = await db.query(
+      `SELECT m.*, 
+              u1.first_name AS sender_first_name,
+              u1.last_name AS sender_last_name,
+              u2.first_name AS receiver_first_name,
+              u2.last_name AS receiver_last_name
+       FROM messages m
+       JOIN users u1 ON m.sender_id = u1.id
+       JOIN users u2 ON m.receiver_id = u2.id
+       WHERE m.property_id = ?
+         AND (
+           (m.sender_id = ? AND m.receiver_id = ?)
+           OR
+           (m.sender_id = ? AND m.receiver_id = ?)
+         )
+       ORDER BY m.created_at ASC`,
+      [propertyId, currentUserId, receiverId, receiverId, currentUserId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to load messages" });
+  }
+});
 // ------------------- START SERVER -------------------
 app.listen(PORT, HOST, () => {
   console.log(`Server running at http://${HOST}:${PORT}`);

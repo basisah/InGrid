@@ -54,6 +54,53 @@ const handleReserve = async () => {
     setFurniture(response.data);
   };
 
+  const handleSendMessage = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setMessageStatus("Please log in first.");
+      return;
+    }
+
+    if (!property?.landlord_id) {
+      setMessageStatus("Landlord information is not available.");
+      return;
+    }
+
+    if (!messageText.trim()) {
+      setMessageStatus("Please enter a message.");
+      return;
+    }
+
+    try {
+      setSendingMessage(true);
+      setMessageStatus("");
+
+      const response = await axios.post(
+        "/api/messages",
+        {
+          receiver_id: property.landlord_id,
+          property_id: Number(id),
+          message: messageText.trim()
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      setMessageStatus(response.data.message || "Message sent successfully.");
+      setMessageText("");
+    } catch (err) {
+      setMessageStatus(
+        err.response?.data?.message || "Failed to send message."
+      );
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
   useEffect(() => {
     fetchFurniture();
     fetchProperty();
@@ -90,7 +137,28 @@ const handleReserve = async () => {
         <h3>Contact Agent</h3>
         <p>{property.seller?.name}</p>
         <p>{property.seller?.email}</p>
-        <button>Message Agent</button>
+        <p>Landlord ID: {property.landlord_id}</p>
+
+        <textarea
+          value={messageText}
+          onChange={(e) => setMessageText(e.target.value)}
+          placeholder="Write your message..."
+          rows={3}
+          style={{
+            width: "100%",
+            marginTop: "10px",
+            padding: "8px",
+            borderRadius: "6px"
+          }}
+        />
+
+        <button onClick={handleSendMessage} style={{ marginTop: "10px" }}>
+        Send Message
+        </button>
+
+        {messageStatus && (
+          <p style={{ marginTop: "10px" }}>{messageStatus}</p>
+        )}
       </div>
 
       {/* MAP */}
