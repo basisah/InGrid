@@ -102,7 +102,14 @@ const toggleWishlist = async (e, propertyId) => {
       <div className="property-grid">
         {properties.map((property) => (
           <div className="property-card" key={property.id}>
-            <img src={property.main_image} alt="property" />
+            <div style={{ position: "relative" }}>
+              <img src={property.main_image} alt="property" />
+              <span
+              onClick={(e) => toggleWishlist(e, property.id)}
+              style={{ position: "absolute", top: "8px", right: "8px", fontSize: "22px", cursor: "pointer" }}>
+              {wishlist.includes(property.id) ? "❤️" : "🤍"}
+              </span>
+            </div>
 
             <h3>{property.title}</h3>
             <p>{property.address}</p>
