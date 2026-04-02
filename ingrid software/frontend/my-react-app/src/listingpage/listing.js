@@ -153,5 +153,7 @@ const toggleWishlist = async (e, propertyId) => {
   <div style={{ position: "fixed", bottom: "30px", left: "50%", transform: "translateX(-50%)", background: "#1b5e20", color: "white", padding: "12px 24px", borderRadius: "8px", fontSize: "14px", zIndex: 1000 }}>
     {wishlistMessage}
     </div>
+      )}
+    </div>
   );
 }
