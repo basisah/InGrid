@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import Payment from "./pages/payment.js";
 
 import Signup from "./pages/signup";
 import Login from "./pages/login";
@@ -41,6 +42,7 @@ function App() {
         <Route path="/compare" element={<Compare />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/post-property" element={<PostProperty />} />
+        <Route path="/payment" element={<Payment />} /> 
 
         {/* nelson update - i commented out the private routes because i want to test the public routes first and i need to see the public routes work correctly */}
         
