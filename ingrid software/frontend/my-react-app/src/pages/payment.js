@@ -7,6 +7,16 @@ export default function Payment() {
   const location = useLocation();
   const navigate = useNavigate();
   const booking = location.state;
+  const furnitureItems = booking?.furnitureItems || [];
+  const furnitureTotal = booking?.furnitureTotal || 0;
+
+  const propertyTotal = booking?.total || 0;
+
+  const subtotal = propertyTotal + furnitureTotal;
+
+  const gst = subtotal * 0.05;
+  const pst = subtotal * 0.06;
+  const grandTotal = subtotal + gst + pst;
 
   const [form, setForm] = useState({
     firstName: "",
@@ -39,7 +49,7 @@ export default function Payment() {
         check_in: booking.check_in,
         check_out: booking.check_out,
         guests: booking.guests,
-        amount: booking.total
+        amount: grandTotal
       }, { headers: { Authorization: `Bearer ${token}` } });
 
       setMessage("Payment successful! 🎉");
@@ -51,9 +61,6 @@ export default function Payment() {
     }
   };
 
-  const gst = booking?.total * 0.05;
-  const pst = booking?.total * 0.06;
-  const grandTotal = booking?.total + gst + pst;
 
   if (!booking) return <p>No booking data found.</p>;
 
@@ -121,39 +128,75 @@ export default function Payment() {
 
         {/* RIGHT — BOOKING SUMMARY */}
         <div className="booking-summary">
-          {booking.property_image && (
-            <img src={booking.property_image} alt="property" />
-          )}
 
-          <h3>{booking.property_title}</h3>
+          {/* PROPERTY (if exists) */}
+          {booking.property_title && (
+            <>
+            {booking.property_image && (
+              <img src={booking.property_image} alt="property" />
+            )}
+
+            <h3>{booking.property_title}</h3>
+
+            <div className="summary-row">
+              <span>Dates</span>
+              <span>{booking.check_in} → {booking.check_out}</span>
+            </div>
+
+            <div className="summary-row">
+              <span>Guests × Nights</span>
+              <span>{booking.guests} × {booking.nights}</span>
+            </div>
+
+            <div className="summary-row">
+              <span>Property Total</span>
+              <span>${propertyTotal.toFixed(2)}</span>
+            </div>
+
+            <hr className="summary-divider" />
+          </>
+        )}
+
+        {/* FURNITURE */}
+        {furnitureItems.length > 0 && (
+          <>
+            <h3>Furniture</h3>
+
+            {furnitureItems.map((item) => (
+              <div key={item.id} className="summary-row">
+              <span>{item.name}</span>
+              <span>${item.price}</span>
+            </div>
+          ))}
 
           <div className="summary-row">
-            <span>Dates</span>
-            <span>{booking.check_in} → {booking.check_out}</span>
-          </div>
-          <div className="summary-row">
-            <span>Guests × Nights</span>
-            <span>{booking.guests} × {booking.nights}</span>
+            <span>Furniture Total</span>
+            <span>${furnitureTotal.toFixed(2)}</span>
           </div>
 
           <hr className="summary-divider" />
+        </>
+      )}
 
-          <div className="summary-row">
-            <span>GST (5%)</span>
-            <span>${gst.toFixed(2)}</span>
-          </div>
-          <div className="summary-row">
-            <span>PST (6%)</span>
-            <span>${pst.toFixed(2)}</span>
-          </div>
+      {/* TAX */}
+      <div className="summary-row">
+        <span>GST (5%)</span>
+        <span>${gst.toFixed(2)}</span>
+      </div>
 
-          <hr className="summary-divider" />
+      <div className="summary-row">
+        <span>PST (6%)</span>
+        <span>${pst.toFixed(2)}</span>
+      </div>
 
-          <div className="summary-total">
-            <span>Total</span>
-            <span>${grandTotal.toFixed(2)}</span>
-          </div>
-        </div>
+      <hr className="summary-divider" />
+
+      {/* FINAL */}
+      <div className="summary-total">
+        <span>Total</span>
+        <span>${grandTotal.toFixed(2)}</span>
+      </div>
+    </div>
 
       </div>
     </div>

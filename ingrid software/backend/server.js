@@ -434,14 +434,9 @@ app.get("/api/furniture/:id", async (req, res) => {
       return res.status(404).json({ error: "Property not found" });
     }
 
-    const property = propertyRows[0];
-
     const [rows] = await db.query(
-      `SELECT f.id, f.name, f.category, f.price, f.image_url, f.color_theme, f.width, f.depth
-       FROM property_furniture pf
-       JOIN furniture f ON pf.furniture_id = f.id
-       WHERE pf.property_id = ?`,
-      [propertyId]
+      `SELECT id, name, category, price, image_url, color_theme, width, depth
+       FROM furniture`
     );
 
     const rooms = {
@@ -478,17 +473,6 @@ app.get("/api/furniture/:id", async (req, res) => {
         reason: fits ? "Fits in the room" : "Too large for the room"
       };
     });
-
-    if (property.type !== "buy") {
-      return res.json(
-        furnitureWithFitInfo.map((item) => ({
-          ...item,
-          fits: false,
-          clearance_space: null,
-          reason: "Furniture purchase is only available for buy properties"
-        }))
-      );
-    }
 
     res.json(furnitureWithFitInfo);
   } catch (err) {
