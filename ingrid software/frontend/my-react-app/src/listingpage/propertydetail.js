@@ -28,13 +28,15 @@ const handleReserve = async () => {
   if (!checkIn || !checkOut) { setBookingMessage("Please select dates."); return; }
   navigate("/payment", { 
     state: { 
-      propertyId: id, 
-      checkIn,
-      checkOut, 
-      guests,
-      nights,
-      price_per_night: property.price,
-      total } 
+    property_id: id,
+    property_title: property.title,
+    property_image: property.main_image,
+    check_in: checkIn,
+    check_out: checkOut,
+    guests,
+    nights,
+    price_per_night: property.price,
+    total } 
     }
   );
 };
@@ -124,7 +126,7 @@ const handleReserve = async () => {
             </div>
             <div className="booking-date-field">
               <label>CHECKOUT</label>
-              <input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} />
+              <input type="date" value={checkOut} min={checkIn} onChange={e => setCheckOut(e.target.value)} />
             </div>
           </div>
           <div className="booking-guests">
