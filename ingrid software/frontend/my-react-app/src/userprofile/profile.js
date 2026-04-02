@@ -9,6 +9,11 @@ function Profile() {
   const [trips, setTrips] = useState([]); //exchanged saved listings,history for trips
   const [loading, setLoading] = useState(true);
   const [verificationStatus, setVerificationStatus] = useState("pending");// state for verification status
+  const today = new Date(); // for filtering current vs past trips
+  const formatDate = (dateStr) => dateStr?.split("T")[0]; // helper to format date strings
+  const currentTrips = trips.filter(t => new Date(t.check_out) >= today); // filter for current/upcoming trips
+  const pastTrips = trips.filter(t => new Date(t.check_out) < today); // filter for past trips
+  
 
   useEffect(() => {
     const fetchProfile = async () => {
