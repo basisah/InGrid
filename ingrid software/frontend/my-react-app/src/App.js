@@ -20,12 +20,7 @@ import Verify from "./pages/verify";
 import ChatPage from "./pages/chat";
 import FurnitureStore from "./pages/furniturestore";
 
-// PrivateRoute component to guard protected routes
-// const PrivateRoute = ({ children }) => {
-//   const token = localStorage.getItem("token");
-//   return token ? children : <Navigate to="/login" />;
-// };
-//  Private Route Wrapper
+// Private Route Wrapper
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/login" replace />;
@@ -46,28 +41,52 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/reset/:token" element={<ResetPassword />} />
-        <Route path="/profile" element={<Profile />} />
         <Route path="/listings" element={<Listings />} />
         <Route path="/property/:id" element={<PropertyDetail />} />
-        <Route path="/compare" element={<Compare />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/post-property" element={<PostProperty />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/trips" element={<TripHistory />} />
         <Route path="/chat/:propertyId/:receiverId" element={<ChatPage />} />
-        
 
-        {/* nelson update - i commented out the private routes because i want to test the public routes first and i need to see the public routes work correctly */}
-
-        {/* Protected Routes
+        {/* Protected Routes */}
         <Route
           path="/profile"
           element={
             <PrivateRoute>
               <Profile />
             </PrivateRoute>
-      {/*  Global Toast System */}
+          }
+        />
+        <Route
+          path="/compare"
+          element={
+            <PrivateRoute>
+              <Compare />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/post-property"
+          element={
+            <PrivateRoute>
+              <PostProperty />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <PrivateRoute>
+              <AdminDashboard />
+            </PrivateRoute>
+          }
+        />
+
+        {/* 404 */}
+        <Route path="*" element={<p style={{ padding: "40px" }}>Page Not Found</p>} />
+      </Routes>
+
+      {/* Global Toast System */}
       <Toaster
         position="top-right"
         reverseOrder={false}
@@ -105,67 +124,6 @@ function App() {
           }
         }}
       />
-
-      <div style={{ minHeight: "100vh" }}>
-        <Routes>
-
-          {/* Default redirect */}
-          <Route path="/" element={<Navigate to="/home" />} />
-
-          {/*  Public Routes */}
-          <Route path="/home" element={<Home />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/verify/:token" element={<Verify />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgotpassword" element={<ForgotPassword />} />
-          <Route path="/reset/:token" element={<ResetPassword />} />
-          <Route path="/listings" element={<Listings />} />
-          <Route path="/property/:id" element={<PropertyDetail />} />
-          {/*  Protected Routes */}
-          <Route
-            path="/profile"
-            element={
-              <PrivateRoute>
-                <Profile />
-              </PrivateRoute>
-            }
-          />
-
-        <Route path="*" element={<p>Page Not Found</p>} />
-      </Routes>
-          <Route
-            path="/compare"
-            element={
-              <PrivateRoute>
-                <Compare />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/post-property"
-            element={
-              <PrivateRoute>
-                <PostProperty />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/admin"
-            element={
-              <PrivateRoute>
-                <AdminDashboard />
-              </PrivateRoute>
-            }
-          />
-
-          {/* 404 */}
-          <Route path="*" element={<p style={{ padding: "40px" }}>Page Not Found</p>} />
-
-        </Routes>
-      </div>
-
     </Router>
   );
 }

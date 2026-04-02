@@ -155,7 +155,6 @@ export default function Compare() {
             Back to Listings
           </button>
         </div>
-      </div>
 
       {/*  TABLE COMPARISON */}
       <table className="compare-table">

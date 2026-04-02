@@ -9,18 +9,15 @@ import "./listing.css";
 export default function PropertyDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [bookingId, setBookingId] = useState(null);
   const [property, setProperty] = useState(null);
   const [furniture, setFurniture] = useState([]);
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(1);
-  const [bookingMessage, setBookingMessage] = useState("");
+  const [saved, setSaved] = useState(false);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [messageStatus, setMessageStatus] = useState("");
 
-  {/* basisah - added booking functionality and state for check-in, check-out, guests, and booking message. 
-    Also added total price calculation and reserve button handler. */}
   const calculateNights = () => {
     if (!checkIn || !checkOut) return 0;
     const diff = new Date(checkOut) - new Date(checkIn);
@@ -33,7 +30,7 @@ export default function PropertyDetail() {
   const handleReserve = async () => {
     const token = localStorage.getItem("token");
     if (!token) { setShowLoginPopup(true); return; }
-    if (!checkIn || !checkOut) { setBookingMessage("Please select dates."); return; }
+    if (!checkIn || !checkOut) { alert("Please select dates."); return; }
     navigate("/payment", { 
       state: { 
         property_id: id,
@@ -47,77 +44,6 @@ export default function PropertyDetail() {
         total
       } 
     });
-  };
-
-  const fetchProperty = async () => {
-    const response = await axios.get(`/api/properties/${id}`);
-    setProperty(response.data);
-  const [saved, setSaved] = useState(false);
-
-  const calculateNights = () => {
-    if (!checkIn || !checkOut) return 0;
-    const diff = new Date(checkOut) - new Date(checkIn);
-    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
-  };
-
-  const nights = calculateNights();
-  const total = property ? nights * property.price : 0;
-
-  useEffect(() => {
-    fetchFurniture();
-    fetchProperty();
-    const fetchData = async () => {
-      try {
-        const propertyRes = await axios.get(`/api/properties/${id}`);
-        const furnitureRes = await axios.get(`/api/furniture/${id}`);
-
-        setProperty(propertyRes.data);
-        setFurniture(furnitureRes.data || []);
-      } catch (error) {
-        console.error("Failed to load property details:", error);
-      }
-    };
-
-    fetchData();
-  }, [id]);
-
-  const handleReserve = async () => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    if (!checkIn || !checkOut) {
-      setBookingMessage("Please select check-in and check-out dates.");
-      return;
-    }
-
-    try {
-     const res = await axios.post(
-        "/api/payments",
-        {
-          property_id: id,
-          check_in: checkIn,
-          check_out: checkOut,
-          guests,
-          amount: total,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      //  store booking id
-      setBookingId(res.data.booking_id || res.data.id);
-
-      setBookingMessage("Booking successful! You can now leave a review.");
-      // setTimeout(() => navigate("/profile"), 1500);
-    } catch (err) {
-      console.error(err);
-      setBookingMessage("Booking failed. Please try again.");
-    }
   };
 
   const handleSave = async () => {
@@ -147,6 +73,22 @@ export default function PropertyDetail() {
     }
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const propertyRes = await axios.get(`/api/properties/${id}`);
+        const furnitureRes = await axios.get(`/api/furniture/${id}`);
+
+        setProperty(propertyRes.data);
+        setFurniture(furnitureRes.data || []);
+      } catch (error) {
+        console.error("Failed to load property details:", error);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
   if (!property) return <div style={{ padding: "40px" }}>Loading...</div>;
 
   const images =
@@ -155,133 +97,6 @@ export default function PropertyDetail() {
       : [{ image_url: property.main_image }];
 
   return (
-    <div className="property-detail" style={{ display: "flex", gap: "40px", alignItems: "flex-start" }}> 
-      {/* IMAGE GALLERY */}
-      <div style={{ flex: 1 }}>
-        {/*hardcoding the flex layout because it kept showing at the bottom of page */}
-        <div className="gallery">
-          {property.images?.map((img) => (
-            <img key={img.id} src={img.image_url} alt="property" />
-          ))}
-        </div>
-
-        {/* PROPERTY INFO */}
-        <div className="property-info">
-          <h1>{property.title}</h1>
-          <p className="price">${property.price}</p>
-          <p>{property.description}</p>
-
-          <div className="specs">
-            <span>{property.bedrooms} Beds</span>
-            <span>{property.bathrooms} Baths</span>
-            <span>{property.size} sqft</span>
-          </div>
-        </div>
-
-        {/* SELLER INFO */}
-        <div className="seller-card">
-          <h3>Contact Agent</h3>
-          <p>{property.seller?.name || "Demo Agent"}</p>
-          <p>{property.seller?.email || "admin@ingrid.com"}</p>
-
-          <button
-            onClick={() => {
-              const token = localStorage.getItem("token");
-
-              if (!token) {
-                setMessageStatus("Please log in first.");
-                return;
-              }
-
-              if (!property?.landlord_id) {
-                setMessageStatus("Agent information is missing for this property.");
-                return;
-              }
-
-              navigate(`/chat/${id}/${property.landlord_id}`);
-            }}
-            style={{ marginTop: "10px" }}
-          >
-            Message Agent
-          </button>
-
-          {messageStatus && (
-            <p style={{ marginTop: "10px" }}>{messageStatus}</p>
-          )}
-        </div>
-
-        {/* MAP */}
-        <div className="map-section">
-          <iframe
-            title="map"
-            src={`https://www.google.com/maps?q=${property.latitude},${property.longitude}&z=15&output=embed`}
-          ></iframe>
-        </div>
-
-        {/* FURNITURE RECOMMENDATION */}
-        <div className="furniture-section">
-          <h2>Recommended Furniture</h2>
-          <div className="furniture-grid">
-            {furniture.map((item) => (
-              <div key={item.id} className="furniture-card">
-                <img 
-                  src={item.image_url} 
-                  alt="furniture" 
-                  style={{ width: "150px", height: "120px", objectFit: "cover", borderRadius: "8px" }} 
-                />
-                <p>{item.name}</p>
-                <p>${item.price}</p>
-                <p>{item.room}</p>
-                <p style={{
-                  fontWeight: "bold",
-                  color: item.fits ? "green" : "red"
-                }}>
-                  {item.fits ? "Fits in room" : "Does not fit"}
-                </p>
-                <p style={{ color: item.fits ? "green" : "red" }}>
-                  {item.reason}
-                </p>
-                <p>Clearance Space:{" "}
-                  {item.clearance_space !== null
-                    ? Number(item.clearance_space).toFixed(2)
-                    : "N/A"}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* basisah - added Airbnb-style booking card with
-       check-in, checkout, guests and reserve button */}
-      <div className="booking-card">
-        <div className="booking-card-inner">
-          <h2>${property.price} <span>/night</span></h2>
-          <div className="booking-inputs">
-            <div className="booking-dates">
-              <div className="booking-date-field">
-                <label>CHECK-IN</label>
-                <input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} />
-              </div>
-              <div className="booking-date-field">
-                <label>CHECKOUT</label>
-                <input type="date" value={checkOut} min={checkIn} onChange={e => setCheckOut(e.target.value)} />
-              </div>
-            </div>
-            <div className="booking-guests">
-              <label>GUESTS</label>
-              <select value={guests} onChange={e => setGuests(e.target.value)}>
-                {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n} guest{n > 1 ? "s" : ""}</option>)}
-              </select>
-            </div>
-          </div>
-          {nights > 0 && <p className="booking-total">${property.price} × {nights} nights = <strong>${total.toFixed(2)}</strong></p>}
-          <button className="reserve-btn" onClick={handleReserve}>Reserve</button>
-          <p className="booking-note">You won't be charged yet</p>
-          {bookingMessage && <p className={bookingMessage.includes("successful") ? "booking-message-success" : "booking-message-error"}>{bookingMessage}</p>}
-            <div className="booking-date-field">
-              <label>CHECKOUT</label>
-              <input type="date" value={checkOut} min={checkIn} onChange={e => setCheckOut(e.target.value)} />
     <>
       <Navbar />
 
@@ -335,13 +150,6 @@ export default function PropertyDetail() {
             <section className="property-section-card">
               <h3>Property Reviews</h3>
               <ReviewList type="property" id={property.id} />
-              {bookingId && (
-                <ReviewForm
-                  bookingId={bookingId}
-                  propertyId={property.id}
-                  reviewType="PROPERTY"
-                />
-              )}
             </section>
 
             <section className="property-section-card">
@@ -349,27 +157,11 @@ export default function PropertyDetail() {
               {property.landlord_id && (
                 <ReviewList type="landlord" id={property.landlord_id} />
               )}
-              {bookingId && property.landlord_id && (
-                <ReviewForm
-                  bookingId={bookingId}
-                  propertyId={property.id}
-                  reviewType="LANDLORD"
-                  revieweeUserId={property.landlord_id}
-                />
-              )}
             </section>
 
             <section className="property-section-card">
               <h3>Area Reviews</h3>
               <ReviewList type="area" id={property.address} />
-              {bookingId && (
-                <ReviewForm
-                  bookingId={bookingId}
-                  propertyId={property.id}
-                  reviewType="AREA"
-                  areaName={property.address}
-                />
-              )}
             </section>
 
             <section className="property-section-card">
@@ -469,22 +261,28 @@ export default function PropertyDetail() {
 
                 <div className="contact-box">
                   <h3>Contact Agent</h3>
-                  <button className=" contact-primary-btn">Message Agent</button>
+                  <button className=" contact-primary-btn" onClick={() => {
+                    const token = localStorage.getItem("token");
+
+                    if (!token) {
+                      setMessageStatus("Please log in first.");
+                      return;
+                    }
+
+                    if (!property?.landlord_id) {
+                      setMessageStatus("Agent information is missing for this property.");
+                      return;
+                    }
+
+                    navigate(`/chat/${id}/${property.landlord_id}`);
+                  }}>Message Agent</button>
                   <button className="contact-save-btn" onClick={handleSave}>
                     {saved ? "Saved ♥" : "Save Listing"}
                   </button>
                 </div>
 
-                {bookingMessage && (
-                  <p
-                    className={
-                      bookingMessage.includes("successful")
-                        ? "booking-message-success"
-                        : "booking-message-error"
-                    }
-                  >
-                    {bookingMessage}
-                  </p>
+                {messageStatus && (
+                  <p style={{ marginTop: "10px" }}>{messageStatus}</p>
                 )}
               </div>
             </div>
@@ -510,7 +308,6 @@ export default function PropertyDetail() {
           </div>
         </div>
       )}
-    </div>
     </>
   );
 }

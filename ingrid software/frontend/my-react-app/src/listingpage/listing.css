@@ -173,6 +173,8 @@
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
+}
+
 /* CONTENT */
 .card-content {
   padding: 16px;

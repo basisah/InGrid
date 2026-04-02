@@ -684,6 +684,9 @@ app.get("/api/messages/:propertyId/:receiverId", async (req, res) => {
   } catch (err) {
     console.error("GET /api/messages error:", err);
     res.status(500).json({ message: err.sqlMessage || "Failed to load messages" });
+  }
+});
+
 // SAVE LISTING
 app.post("/api/save/:id", authenticate, async (req, res) => {
   const userId = req.user.id;
