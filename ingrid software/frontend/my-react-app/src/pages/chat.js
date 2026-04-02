@@ -8,10 +8,23 @@ export default function ChatPage() {
   const [messageText, setMessageText] = useState("");
   const [status, setStatus] = useState("");
 
+  const getCurrentUserId = () => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.id;
+    } catch (err) {
+      return null;
+    }
+  };
+
   const fetchMessages = async () => {
     const token = localStorage.getItem("token");
+    const currentUserId = getCurrentUserId();
 
-    if (!token) {
+    if (!token || !currentUserId) {
       setStatus("Please log in first.");
       return;
     }
@@ -26,15 +39,18 @@ export default function ChatPage() {
         }
       );
       setMessages(response.data);
+      setStatus("");
     } catch (err) {
-      setStatus("Failed to load messages.");
+      console.error(err.response?.data || err);
+      setStatus(err.response?.data?.message || "Failed to load messages.");
     }
   };
 
   const sendMessage = async () => {
     const token = localStorage.getItem("token");
+    const currentUserId = getCurrentUserId();
 
-    if (!token) {
+    if (!token || !currentUserId) {
       setStatus("Please log in first.");
       return;
     }
@@ -63,6 +79,8 @@ export default function ChatPage() {
       setStatus("");
       fetchMessages();
     } catch (err) {
+      console.error("FULL ERROR:", err);
+      console.error("RESPONSE:", err.response?.data);
       setStatus(err.response?.data?.message || "Failed to send message.");
     }
   };
@@ -99,7 +117,7 @@ export default function ChatPage() {
               }}
             >
               <p style={{ margin: 0, fontWeight: "bold" }}>
-                {msg.sender_first_name} {msg.sender_last_name}
+                {msg.sender_first_name || "User"} {msg.sender_last_name || ""}
               </p>
               <p style={{ margin: "5px 0" }}>{msg.message}</p>
             </div>

@@ -89,8 +89,8 @@ export default function PropertyDetail() {
         {/* SELLER INFO */}
         <div className="seller-card">
           <h3>Contact Agent</h3>
-          <p>{property.seller?.name}</p>
-          <p>{property.seller?.email}</p>
+          <p>{property.seller?.name || "Demo Agent"}</p>
+          <p>{property.seller?.email || "admin@ingrid.com"}</p>
 
           <button
             onClick={() => {
@@ -101,8 +101,12 @@ export default function PropertyDetail() {
                 return;
               }
 
-              const receiverId = 1;
-              navigate(`/chat/${id}/${receiverId}`);
+              if (!property?.landlord_id) {
+                setMessageStatus("Agent information is missing for this property.");
+                return;
+              }
+
+              navigate(`/chat/${id}/${property.landlord_id}`);
             }}
             style={{ marginTop: "10px" }}
           >
