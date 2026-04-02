@@ -2,6 +2,8 @@ import Navbar from "./navbar";
 import Main from "./main";
 import Features from "./features";
 import Footer from "./footer";
+import SearchBar from "./searchbar";
+import { useEffect } from "react";
 import PropertyList from "./propertyList";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +16,7 @@ function Home() {
     <>
       <Navbar />
       <Main />
+      <SearchBar setProperties={setProperties} />
       <Features />
       <PropertyList properties={properties} />
       <Footer />

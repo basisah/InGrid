@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import Navbar from "../home/navbar";
+import ReviewList from "../reviewpage/reviewList";
+import ReviewForm from "../reviewpage/reviewForm";
 import "./listing.css";
 
 export default function PropertyDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [bookingId, setBookingId] = useState(null);
   const [property, setProperty] = useState(null);
   const [furniture, setFurniture] = useState([]);
   const [checkIn, setCheckIn] = useState("");
@@ -48,19 +52,107 @@ export default function PropertyDetail() {
   const fetchProperty = async () => {
     const response = await axios.get(`/api/properties/${id}`);
     setProperty(response.data);
+  const [saved, setSaved] = useState(false);
+
+  const calculateNights = () => {
+    if (!checkIn || !checkOut) return 0;
+    const diff = new Date(checkOut) - new Date(checkIn);
+    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
   };
 
-  const fetchFurniture = async () => {
-    const response = await axios.get(`/api/furniture/${id}`);
-    setFurniture(response.data);
-  };
+  const nights = calculateNights();
+  const total = property ? nights * property.price : 0;
 
   useEffect(() => {
     fetchFurniture();
     fetchProperty();
+    const fetchData = async () => {
+      try {
+        const propertyRes = await axios.get(`/api/properties/${id}`);
+        const furnitureRes = await axios.get(`/api/furniture/${id}`);
+
+        setProperty(propertyRes.data);
+        setFurniture(furnitureRes.data || []);
+      } catch (error) {
+        console.error("Failed to load property details:", error);
+      }
+    };
+
+    fetchData();
   }, [id]);
 
-  if (!property) return <div>Loading...</div>;
+  const handleReserve = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    if (!checkIn || !checkOut) {
+      setBookingMessage("Please select check-in and check-out dates.");
+      return;
+    }
+
+    try {
+     const res = await axios.post(
+        "/api/payments",
+        {
+          property_id: id,
+          check_in: checkIn,
+          check_out: checkOut,
+          guests,
+          amount: total,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      //  store booking id
+      setBookingId(res.data.booking_id || res.data.id);
+
+      setBookingMessage("Booking successful! You can now leave a review.");
+      // setTimeout(() => navigate("/profile"), 1500);
+    } catch (err) {
+      console.error(err);
+      setBookingMessage("Booking failed. Please try again.");
+    }
+  };
+
+  const handleSave = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      if (saved) {
+        await fetch(`/api/save/${property.id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSaved(false);
+      } else {
+        await fetch(`/api/save/${property.id}`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSaved(true);
+      }
+    } catch (error) {
+      console.error("Save failed:", error);
+    }
+  };
+
+  if (!property) return <div style={{ padding: "40px" }}>Loading...</div>;
+
+  const images =
+    property.images && property.images.length > 0
+      ? property.images
+      : [{ image_url: property.main_image }];
 
   return (
     <div className="property-detail" style={{ display: "flex", gap: "40px", alignItems: "flex-start" }}> 
@@ -187,6 +279,216 @@ export default function PropertyDetail() {
           <button className="reserve-btn" onClick={handleReserve}>Reserve</button>
           <p className="booking-note">You won't be charged yet</p>
           {bookingMessage && <p className={bookingMessage.includes("successful") ? "booking-message-success" : "booking-message-error"}>{bookingMessage}</p>}
+            <div className="booking-date-field">
+              <label>CHECKOUT</label>
+              <input type="date" value={checkOut} min={checkIn} onChange={e => setCheckOut(e.target.value)} />
+    <>
+      <Navbar />
+
+      <div className="property-detail-page">
+        <button
+          className="back-btn"
+          onClick={() => navigate("/listings")}
+        >
+          ← Back to Listings
+        </button>
+        <div className="property-gallery">
+          <div className="gallery-main">
+            <img
+              src={images[0]?.image_url || property.main_image}
+              alt={property.title}
+            />
+          </div>
+
+          <div className="gallery-side">
+            {images.slice(1, 5).map((img, index) => (
+              <img
+                key={img.id || index}
+                src={img.image_url}
+                alt={`${property.title} ${index + 2}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="property-header">
+          
+          <div>
+            <h1>{property.title}</h1>
+            <p className="property-address">{property.address}</p>
+
+            <div className="property-specs">
+              <span>{property.bedrooms} Beds</span>
+              <span>{property.bathrooms} Baths</span>
+              <span>{property.size} sqft</span>
+            </div>
+          </div>
+
+          <div className="property-price-box">
+            <h2>${property.price}</h2>
+            <p>per night</p>
+          </div>
+        </div>
+
+        <div className="property-main-layout">
+          <div className="property-main-content">
+            <section className="property-section-card">
+              <h3>Property Reviews</h3>
+              <ReviewList type="property" id={property.id} />
+              {bookingId && (
+                <ReviewForm
+                  bookingId={bookingId}
+                  propertyId={property.id}
+                  reviewType="PROPERTY"
+                />
+              )}
+            </section>
+
+            <section className="property-section-card">
+              <h3>Landlord Reviews</h3>
+              {property.landlord_id && (
+                <ReviewList type="landlord" id={property.landlord_id} />
+              )}
+              {bookingId && property.landlord_id && (
+                <ReviewForm
+                  bookingId={bookingId}
+                  propertyId={property.id}
+                  reviewType="LANDLORD"
+                  revieweeUserId={property.landlord_id}
+                />
+              )}
+            </section>
+
+            <section className="property-section-card">
+              <h3>Area Reviews</h3>
+              <ReviewList type="area" id={property.address} />
+              {bookingId && (
+                <ReviewForm
+                  bookingId={bookingId}
+                  propertyId={property.id}
+                  reviewType="AREA"
+                  areaName={property.address}
+                />
+              )}
+            </section>
+
+            <section className="property-section-card">
+              <h3>Location</h3>
+              <div className="map-wrapper">
+                <iframe
+                  title="map"
+                  src={`https://www.google.com/maps?q=${property.latitude},${property.longitude}&z=15&output=embed`}
+                ></iframe>
+              </div>
+            </section>
+
+            <section className="property-section-card">
+              <h3>Recommended Furniture</h3>
+
+              {furniture.length === 0 ? (
+                <p>No furniture recommendations yet.</p>
+              ) : (
+                <div className="furniture-grid">
+                  {furniture.map((item) => (
+                    <div key={item.id} className="furniture-card">
+                      <div className="furniture-image-wrap">
+                        <img src={item.image_url} alt={item.name} />
+                      </div>
+
+                      <div className="furniture-info">
+                        <h4>{item.name}</h4>
+                        <p className="furniture-price">${item.price}</p>
+                        <span className={item.fits ? "fits" : "nofit"}>
+                          {item.fits ? "Fits well ✔" : "Too big"}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+
+          <div className="property-sidebar">
+            <div className="booking-card">
+              <div className="booking-card-inner">
+                <h2>
+                  ${property.price} <span>/ night</span>
+                </h2>
+
+                <div className="booking-inputs">
+                  <div className="booking-dates">
+                    <div className="booking-date-field">
+                      <label>CHECK-IN</label>
+                      <input
+                        type="date"
+                        value={checkIn}
+                        onChange={(e) => setCheckIn(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="booking-date-field">
+                      <label>CHECK-OUT</label>
+                      <input
+                        type="date"
+                        value={checkOut}
+                        onChange={(e) => setCheckOut(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="booking-guests">
+                    <label>GUESTS</label>
+                    <select
+                      value={guests}
+                      onChange={(e) => setGuests(Number(e.target.value))}
+                    >
+                      {[1, 2, 3, 4, 5, 6].map((n) => (
+                        <option key={n} value={n}>
+                          {n} guest{n > 1 ? "s" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {nights > 0 && (
+                  <p className="booking-total">
+                    ${property.price} × {nights} nights ={" "}
+                    <strong>${total.toFixed(2)}</strong>
+                  </p>
+                )}
+
+                <button className="reserve-btn" onClick={handleReserve}>
+                  Reserve
+                </button>
+
+                <p className="booking-note">You won't be charged yet</p>
+
+                <hr className="sidebar-divider" />
+
+                <div className="contact-box">
+                  <h3>Contact Agent</h3>
+                  <button className=" contact-primary-btn">Message Agent</button>
+                  <button className="contact-save-btn" onClick={handleSave}>
+                    {saved ? "Saved ♥" : "Save Listing"}
+                  </button>
+                </div>
+
+                {bookingMessage && (
+                  <p
+                    className={
+                      bookingMessage.includes("successful")
+                        ? "booking-message-success"
+                        : "booking-message-error"
+                    }
+                  >
+                    {bookingMessage}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -209,5 +511,6 @@ export default function PropertyDetail() {
         </div>
       )}
     </div>
+    </>
   );
 }

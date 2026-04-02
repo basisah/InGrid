@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Payment from "./pages/payment.js";
 import Wishlist from "./pages/wishlist.js";
 import TripHistory from "./pages/triphistory.js";
+import { Toaster } from "react-hot-toast";
 
 import Signup from "./pages/signup";
 import Login from "./pages/login";
@@ -24,6 +25,11 @@ import FurnitureStore from "./pages/furniturestore";
 //   const token = localStorage.getItem("token");
 //   return token ? children : <Navigate to="/login" />;
 // };
+//  Private Route Wrapper
+const PrivateRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+  return token ? children : <Navigate to="/login" replace />;
+};
 
 function App() {
   return (
@@ -61,38 +67,105 @@ function App() {
             <PrivateRoute>
               <Profile />
             </PrivateRoute>
+      {/*  Global Toast System */}
+      <Toaster
+        position="top-right"
+        reverseOrder={false}
+        gutter={12}
+        containerStyle={{ top: 20, right: 20 }}
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: "#111827",
+            color: "#fff",
+            borderRadius: "12px",
+            padding: "14px 18px",
+            fontSize: "14px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.4)"
+          },
+          success: {
+            duration: 2500,
+            iconTheme: {
+              primary: "#4f46e5",
+              secondary: "#fff"
+            }
+          },
+          error: {
+            duration: 3500,
+            iconTheme: {
+              primary: "#ef4444",
+              secondary: "#fff"
+            }
+          },
+          loading: {
+            iconTheme: {
+              primary: "#6366f1",
+              secondary: "#fff"
+            }
           }
-        />
+        }}
+      />
 
-        <Route
-          path="/listings"
-          element={
-            <PrivateRoute>
-              <Listings />
-            </PrivateRoute>
-          }
-        />
+      <div style={{ minHeight: "100vh" }}>
+        <Routes>
 
-        <Route
-          path="/property/:id"
-          element={
-            <PrivateRoute>
-              <PropertyDetail />
-            </PrivateRoute>
-          }
-        />
+          {/* Default redirect */}
+          <Route path="/" element={<Navigate to="/home" />} />
 
-        <Route
-          path="/compare"
-          element={
-            <PrivateRoute>
-              <Compare />
-            </PrivateRoute>
-          }
-        /> */}
+          {/*  Public Routes */}
+          <Route path="/home" element={<Home />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/verify/:token" element={<Verify />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgotpassword" element={<ForgotPassword />} />
+          <Route path="/reset/:token" element={<ResetPassword />} />
+          <Route path="/listings" element={<Listings />} />
+          <Route path="/property/:id" element={<PropertyDetail />} />
+          {/*  Protected Routes */}
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            }
+          />
 
         <Route path="*" element={<p>Page Not Found</p>} />
       </Routes>
+          <Route
+            path="/compare"
+            element={
+              <PrivateRoute>
+                <Compare />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/post-property"
+            element={
+              <PrivateRoute>
+                <PostProperty />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute>
+                <AdminDashboard />
+              </PrivateRoute>
+            }
+          />
+
+          {/* 404 */}
+          <Route path="*" element={<p style={{ padding: "40px" }}>Page Not Found</p>} />
+
+        </Routes>
+      </div>
+
     </Router>
   );
 }

@@ -278,10 +278,15 @@ app.post("/api/verify-user/:userId", authenticate, async (req, res) => {
 
 // GET ALL LISTINGS (Homepage Search) - made some edits to this route to support search filters, will need to update frontend to match
 app.get("/api/properties", async (req, res) => {
-  const { location, type, minPrice, maxPrice } = req.query;
+  const { keyword, location, type, minPrice, maxPrice } = req.query;
 
-  let query = "SELECT * FROM properties WHERE 1=1";
-  let values = [];
+  let query = "SELECT * FROM properties WHERE is_verified = true";
+  const values = [];
+
+  if (keyword) {
+    query += " AND (title LIKE ? OR description LIKE ? OR address LIKE ?)";
+    values.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
+  }
 
   if (location) {
     query += " AND address LIKE ?";
@@ -290,23 +295,26 @@ app.get("/api/properties", async (req, res) => {
 
   if (type) {
     query += " AND type = ?";
-    values.push(type.toLowerCase()); // match ENUM in DB
+    values.push(type.toLowerCase());
   }
+
   if (minPrice) {
     query += " AND price >= ?";
-    values.push(minPrice);
+    values.push(Number(minPrice));
   }
 
   if (maxPrice) {
     query += " AND price <= ?";
-    values.push(maxPrice);
+    values.push(Number(maxPrice));
   }
+
+  query += " ORDER BY id DESC";
 
   try {
     const [results] = await db.query(query, values);
     res.json(results);
   } catch (err) {
-    console.error(err);
+    console.error("Property search error:", err);
     res.status(500).json({ error: "Database error" });
   }
 });
@@ -359,11 +367,11 @@ app.post("/api/payments", authenticate, async (req, res) => {
   const { property_id, check_in, check_out, guests, amount } = req.body;
   const user_id = req.user.id;
   try {
-    await db.query(
+    const [result] = await db.query(
       "INSERT INTO payments (user_id, property_id, check_in, check_out, guests, amount, status) VALUES (?, ?, ?, ?, ?, ?, 'completed')",
       [user_id, property_id, check_in, check_out, guests, amount]
     );
-    res.json({ message: "Booking successful" });
+    res.json({ message: "Booking successful", paymentId: result.insertId });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Booking failed" });
@@ -506,6 +514,8 @@ app.post("/api/properties", authenticate, async (req, res) => {
     const {
       title,
       address,
+      // city,
+      // province,
       type,
       price,
       bedrooms,
@@ -524,6 +534,8 @@ app.post("/api/properties", authenticate, async (req, res) => {
       [
         title,
         address,
+        // city,
+        // province,
         type,
         price,
         bedrooms,
@@ -725,6 +737,31 @@ app.get("/api/admin/pending-users", authenticate, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+// REJECT PROPERTY (ADMIN)
+app.post("/api/admin/reject/:id", authenticate, async (req, res) => {
+
+  if (req.user.role !== "admin") {
+    return res.sendStatus(403);
+  }
+
+  try {
+    await db.query("DELETE FROM properties WHERE id = ?", [req.params.id]);
+    res.json({ message: "Property rejected and removed" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+//REVIEW SESSION
+const reviewController = require("./controller/reviewController");
+
+// REVIEWS
+app.post("/api/reviews", authenticate, reviewController.createReview);
+app.get("/api/reviews/property/:id", reviewController.getPropertyReviews);
+app.get("/api/reviews/landlord/:id", reviewController.getLandlordReviews);
+app.get("/api/reviews/area/:name", reviewController.getAreaReviews);
+
+
 // ------------------- START SERVER -------------------
 app.listen(PORT, HOST, () => {
   console.log(`Server running at http://${HOST}:${PORT}`);

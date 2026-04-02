@@ -4,8 +4,7 @@ import logo from "../assets/logo.png"; // adjust path if needed
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
   const handleSubmit = async (e) => {
