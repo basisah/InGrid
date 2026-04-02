@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import "../listingpage/listing.css";
-import "./Wishlist.css";
+import "./wishlist.css";
 
 export default function Wishlist() {
   const navigate = useNavigate();
