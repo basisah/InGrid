@@ -75,9 +75,24 @@ const handlePictureUpload = (e) => {
 
         {/* LEFT SIDE */}
         <div style={{ width: "280px", flexShrink: 0 }}>
-          <div style={{ width: "100px", height: "100px", borderRadius: "50%", background: "#1b5e20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "40px", color: "white", marginBottom: "16px" }}>
-            👤
-          </div>
+          <div style={{ position: "relative", width: "100px", marginBottom: "16px" }}>
+            {user.profile_picture ? (
+              <img src={user.profile_picture} alt="avatar"
+              style={{ width: "100px", height: "100px", borderRadius: "50%", objectFit: "cover" }} />
+            ) : (
+            <div style={{ width: "100px", height: "100px", borderRadius: "50%", background: "#1b5e20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "40px", color: "white" }}>
+              👤
+            </div>
+          )}
+  <button onClick={() => setEditingPicture(!editingPicture)}
+    style={{ position: "absolute", bottom: 0, right: 0, background: "#1b5e20", color: "white", border: "none", borderRadius: "50%", width: "28px", height: "28px", cursor: "pointer", fontSize: "14px" }}>
+    ✏️
+  </button>
+  {editingPicture && (
+    <input type="file" accept="image/*" onChange={handlePictureUpload}
+      style={{ marginTop: "8px", fontSize: "12px", width: "100px" }} />
+  )}
+</div>
 
           <h2 style={{ margin: "0 0 4px" }}>
             {user.first_name} {user.last_name}
