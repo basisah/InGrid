@@ -118,14 +118,16 @@
   margin-bottom: 16px;
 }
 
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  color: #555;
-  line-height: 2;
-}
-
 .summary-divider {
   border: none;
-  border-top:
+  border-top: 1px solid #eee;
+  margin: 12px 0;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  font-size: 16px;
+  color: #000;
+}
