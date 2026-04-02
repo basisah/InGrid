@@ -13,34 +13,38 @@ export default function PropertyDetail() {
   const [guests, setGuests] = useState(1);
   const [bookingMessage, setBookingMessage] = useState("");
   const [showLoginPopup, setShowLoginPopup] = useState(false);
-{/* basisah - added booking functionality and state for check-in, check-out, guests, and booking message. 
-  Also added total price calculation and reserve button handler. */}
-  const calculateNights = () => {
-  if (!checkIn || !checkOut) return 0;
-  const diff = new Date(checkOut) - new Date(checkIn);
-  return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
-};
-const nights = calculateNights();
-const total = nights * property?.price;
+  const [messageStatus, setMessageStatus] = useState("");
 
-const handleReserve = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) { setShowLoginPopup(true); return; }
-  if (!checkIn || !checkOut) { setBookingMessage("Please select dates."); return; }
-  navigate("/payment", { 
-    state: { 
-    property_id: id,
-    property_title: property.title,
-    property_image: property.main_image,
-    check_in: checkIn,
-    check_out: checkOut,
-    guests,
-    nights,
-    price_per_night: property.price,
-    total } 
-    }
-  );
-};
+  {/* basisah - added booking functionality and state for check-in, check-out, guests, and booking message. 
+    Also added total price calculation and reserve button handler. */}
+  const calculateNights = () => {
+    if (!checkIn || !checkOut) return 0;
+    const diff = new Date(checkOut) - new Date(checkIn);
+    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+  };
+
+  const nights = calculateNights();
+  const total = nights * property?.price;
+
+  const handleReserve = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) { setShowLoginPopup(true); return; }
+    if (!checkIn || !checkOut) { setBookingMessage("Please select dates."); return; }
+    navigate("/payment", { 
+      state: { 
+        property_id: id,
+        property_title: property.title,
+        property_image: property.main_image,
+        check_in: checkIn,
+        check_out: checkOut,
+        guests,
+        nights,
+        price_per_night: property.price,
+        total
+      } 
+    });
+  };
+
   const fetchProperty = async () => {
     const response = await axios.get(`/api/properties/${id}`);
     setProperty(response.data);
@@ -66,99 +70,127 @@ const handleReserve = async () => {
         <div className="gallery">
           {property.images?.map((img) => (
             <img key={img.id} src={img.image_url} alt="property" />
-        ))}
-      </div>
-
-      {/* PROPERTY INFO */}
-      <div className="property-info">
-        <h1>{property.title}</h1>
-        <p className="price">${property.price}</p>
-        <p>{property.description}</p>
-
-        <div className="specs">
-          <span>{property.bedrooms} Beds</span>
-          <span>{property.bathrooms} Baths</span>
-          <span>{property.size} sqft</span>
-        </div>
-      </div>
-
-      {/* SELLER INFO */}
-      <div className="seller-card">
-        <h3>Contact Agent</h3>
-        <p>{property.seller?.name}</p>
-        <p>{property.seller?.email}</p>
-        <button>Message Agent</button>
-      </div>
-
-      {/* MAP */}
-      <div className="map-section">
-        <iframe
-          title="map"
-          src={`https://www.google.com/maps?q=${property.latitude},${property.longitude}&z=15&output=embed`}
-        ></iframe>
-      </div>
-
-      {/* FURNITURE RECOMMENDATION */}
-      <div className="furniture-section">
-        <h2>Recommended Furniture</h2>
-        <div className="furniture-grid">
-          {furniture.map((item) => (
-            <div key={item.id} className="furniture-card">
-              <img 
-                src={item.image_url} 
-                alt="furniture" 
-                style={{ width: "150px", height: "120px", objectFit: "cover", borderRadius: "8px" }} 
-              />
-              <p>{item.name}</p>
-              <p>${item.price}</p>
-              <p>{item.room}</p>
-              <p style={{
-                  fontWeight: "bold",
-                  color: item.fits ? "green" : "red"}}>
-                {item.fits ? "Fits in room" : "Does not fit"}</p>
-              <p style={{ color: item.fits ? "green" : "red" }}>
-                {item.reason}
-              </p>
-              <p>Clearance Space:{" "}
-                {item.clearance_space !== null
-                  ? Number(item.clearance_space).toFixed(2)
-                  : "N/A"}
-              </p>
-            </div>
           ))}
         </div>
+
+        {/* PROPERTY INFO */}
+        <div className="property-info">
+          <h1>{property.title}</h1>
+          <p className="price">${property.price}</p>
+          <p>{property.description}</p>
+
+          <div className="specs">
+            <span>{property.bedrooms} Beds</span>
+            <span>{property.bathrooms} Baths</span>
+            <span>{property.size} sqft</span>
+          </div>
+        </div>
+
+        {/* SELLER INFO */}
+        <div className="seller-card">
+          <h3>Contact Agent</h3>
+          <p>{property.seller?.name || "Demo Agent"}</p>
+          <p>{property.seller?.email || "admin@ingrid.com"}</p>
+
+          <button
+            onClick={() => {
+              const token = localStorage.getItem("token");
+
+              if (!token) {
+                setMessageStatus("Please log in first.");
+                return;
+              }
+
+              if (!property?.landlord_id) {
+                setMessageStatus("Agent information is missing for this property.");
+                return;
+              }
+
+              navigate(`/chat/${id}/${property.landlord_id}`);
+            }}
+            style={{ marginTop: "10px" }}
+          >
+            Message Agent
+          </button>
+
+          {messageStatus && (
+            <p style={{ marginTop: "10px" }}>{messageStatus}</p>
+          )}
+        </div>
+
+        {/* MAP */}
+        <div className="map-section">
+          <iframe
+            title="map"
+            src={`https://www.google.com/maps?q=${property.latitude},${property.longitude}&z=15&output=embed`}
+          ></iframe>
+        </div>
+
+        {/* FURNITURE RECOMMENDATION */}
+        <div className="furniture-section">
+          <h2>Recommended Furniture</h2>
+          <div className="furniture-grid">
+            {furniture.map((item) => (
+              <div key={item.id} className="furniture-card">
+                <img 
+                  src={item.image_url} 
+                  alt="furniture" 
+                  style={{ width: "150px", height: "120px", objectFit: "cover", borderRadius: "8px" }} 
+                />
+                <p>{item.name}</p>
+                <p>${item.price}</p>
+                <p>{item.room}</p>
+                <p style={{
+                  fontWeight: "bold",
+                  color: item.fits ? "green" : "red"
+                }}>
+                  {item.fits ? "Fits in room" : "Does not fit"}
+                </p>
+                <p style={{ color: item.fits ? "green" : "red" }}>
+                  {item.reason}
+                </p>
+                <p>Clearance Space:{" "}
+                  {item.clearance_space !== null
+                    ? Number(item.clearance_space).toFixed(2)
+                    : "N/A"}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-      </div>
+
       {/* basisah - added Airbnb-style booking card with
        check-in, checkout, guests and reserve button */}
       <div className="booking-card">
-      <div className="booking-card-inner">
-        <h2>${property.price} <span>/night</span></h2>
-        <div className="booking-inputs">
-          <div className="booking-dates">
-            <div className="booking-date-field">
-              <label>CHECK-IN</label>
-              <input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} />
+        <div className="booking-card-inner">
+          <h2>${property.price} <span>/night</span></h2>
+          <div className="booking-inputs">
+            <div className="booking-dates">
+              <div className="booking-date-field">
+                <label>CHECK-IN</label>
+                <input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} />
+              </div>
+              <div className="booking-date-field">
+                <label>CHECKOUT</label>
+                <input type="date" value={checkOut} min={checkIn} onChange={e => setCheckOut(e.target.value)} />
+              </div>
             </div>
-            <div className="booking-date-field">
-              <label>CHECKOUT</label>
-              <input type="date" value={checkOut} min={checkIn} onChange={e => setCheckOut(e.target.value)} />
+            <div className="booking-guests">
+              <label>GUESTS</label>
+              <select value={guests} onChange={e => setGuests(e.target.value)}>
+                {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n} guest{n > 1 ? "s" : ""}</option>)}
+              </select>
             </div>
           </div>
-          <div className="booking-guests">
-            <label>GUESTS</label>
-            <select value={guests} onChange={e => setGuests(e.target.value)}>
-              {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n} guest{n > 1 ? "s" : ""}</option>)}
-            </select>
-          </div>
+          {nights > 0 && <p className="booking-total">${property.price} × {nights} nights = <strong>${total.toFixed(2)}</strong></p>}
+          <button className="reserve-btn" onClick={handleReserve}>Reserve</button>
+          <p className="booking-note">You won't be charged yet</p>
+          {bookingMessage && <p className={bookingMessage.includes("successful") ? "booking-message-success" : "booking-message-error"}>{bookingMessage}</p>}
         </div>
-        {nights > 0 && <p className="booking-total">${property.price} × {nights} nights = <strong>${total.toFixed(2)}</strong></p>}
-        <button className="reserve-btn" onClick={handleReserve}>Reserve</button>
-        <p className="booking-note">You won't be charged yet</p>
-        {bookingMessage && <p className={bookingMessage.includes("successful") ? "booking-message-success" : "booking-message-error"}>{bookingMessage}</p>}
       </div>
-    </div>
-    {/* basisah - login popup for unauthenticated users */}
+
+      {/* basisah - login popup for unauthenticated users */}
       {showLoginPopup && (
         <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
           <div style={{ background: "white", borderRadius: "16px", padding: "32px", textAlign: "center", width: "340px" }}>
