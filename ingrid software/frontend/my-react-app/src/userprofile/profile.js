@@ -113,7 +113,7 @@ function Profile() {
           <hr style={{ marginBottom: "20px" }} />
 
           {trips.length === 0 ? (
-            <p style={{ color: "#777" }}>No trips yet. Book a property to get started!</p>
+            <p style={{ color: "#777" }}>No past trips yet.</p> //basisah - added message for no past trips
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
               {trips.map(trip => (
