@@ -8,6 +8,7 @@ CREATE TABLE users (
     date_of_birth DATE,
     home_address VARCHAR(255),
     phone_number VARCHAR(20),
+    profile_picture LONGTEXT,
 
     email VARCHAR(150) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
@@ -20,7 +21,6 @@ CREATE TABLE users (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    profile_picture LONGTEXT,
 );
 
 CREATE TABLE password_resets (

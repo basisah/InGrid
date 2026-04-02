@@ -224,6 +224,20 @@ app.get("/api/profile", authenticate, async (req, res) => {
   }
 });
 
+// UPDATE PROFILE PICTURE
+app.put("/api/profile/picture", authenticate, async (req, res) => {
+  const { profile_picture } = req.body;
+  try {
+    await db.query(
+      "UPDATE users SET profile_picture = ? WHERE id = ?",
+      [profile_picture, req.user.id]
+    );
+    res.json({ message: "Profile picture updated" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // GET VERIFICATION STATUS
 app.get("/api/verify-status/:userId", authenticate, async (req, res) => {
   try {
