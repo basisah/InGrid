@@ -12,6 +12,7 @@ export default function PropertyDetail() {
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(1);
   const [bookingMessage, setBookingMessage] = useState("");
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
 {/* basisah - added booking functionality and state for check-in, check-out, guests, and booking message. 
   Also added total price calculation and reserve button handler. */}
   const calculateNights = () => {
