@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Payment from "./pages/payment.js";
+import Wishlist from "./pages/wishlist.js";
 
 import Signup from "./pages/signup";
 import Login from "./pages/login";
@@ -14,6 +15,7 @@ import Compare from "./listingpage/compare";
 import PostProperty from "./property/property";
 import AdminDashboard from "./adminpage/AdminDashboard";
 import Verify from "./pages/verify";
+
 
 // PrivateRoute component to guard protected routes
 // const PrivateRoute = ({ children }) => {
@@ -43,6 +45,7 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/post-property" element={<PostProperty />} />
         <Route path="/payment" element={<Payment />} /> 
+        <Route path="/wishlist" element={<Wishlist />} /> 
 
         {/* nelson update - i commented out the private routes because i want to test the public routes first and i need to see the public routes work correctly */}
         

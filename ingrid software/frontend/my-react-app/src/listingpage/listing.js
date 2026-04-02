@@ -12,6 +12,32 @@ export default function Listings() {
   });
   const [compareList, setCompareList] = useState([]);
   
+  const [wishlist, setWishlist] = useState([]);
+  const [wishlistMessage, setWishlistMessage] = useState("");
+
+useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+  axios.get("/api/wishlist", { headers: { Authorization: `Bearer ${token}` } })
+    .then(r => setWishlist(r.data))
+    .catch(() => {});
+}, []);
+
+const toggleWishlist = async (e, propertyId) => {
+  e.preventDefault();
+  const token = localStorage.getItem("token");
+  if (!token) return;
+  if (wishlist.includes(propertyId)) {
+    await axios.delete(`/api/wishlist/${propertyId}`, { headers: { Authorization: `Bearer ${token}` } });
+    setWishlist(wishlist.filter(id => id !== propertyId));
+    setWishlistMessage("Removed from wishlist");
+  } else {
+    await axios.post(`/api/wishlist/${propertyId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+    setWishlist([...wishlist, propertyId]);
+    setWishlistMessage("Added to wishlist");
+  }
+  setTimeout(() => setWishlistMessage(""), 2000);
+};
 
   const fetchProperties = async () => {
     const API_URL = process.env.REACT_APP_API_URL || ""; //basisah - rremoved the api constant
@@ -80,7 +106,14 @@ export default function Listings() {
       <div className="property-grid">
         {properties.map((property) => (
           <div className="property-card" key={property.id}>
-            <img src={property.main_image} alt="property" />
+            <div style={{ position: "relative" }}>
+              <img src={property.main_image} alt="property" />
+              <span
+              onClick={(e) => toggleWishlist(e, property.id)}
+              style={{ position: "absolute", top: "8px", right: "8px", fontSize: "22px", cursor: "pointer" }}>
+              {wishlist.includes(property.id) ? "❤️" : "🤍"}
+              </span>
+            </div>
 
             <h3>{property.title}</h3>
             <p>{property.address}</p>
@@ -115,6 +148,11 @@ export default function Listings() {
             Compare ({compareList.length})
           </Link>
         </div>
+      )}
+      {wishlistMessage && (
+  <div style={{ position: "fixed", bottom: "30px", left: "50%", transform: "translateX(-50%)", background: "#1b5e20", color: "white", padding: "12px 24px", borderRadius: "8px", fontSize: "14px", zIndex: 1000 }}>
+    {wishlistMessage}
+    </div>
       )}
     </div>
   );
