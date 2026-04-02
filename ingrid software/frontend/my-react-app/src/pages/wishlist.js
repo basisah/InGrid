@@ -45,7 +45,15 @@ export default function Wishlist() {
         <div className="property-grid">
           {wishlistProperties.map(property => (
             <div className="property-card" key={property.id}>
-              <img src={property.main_image} alt="property" />
+              <div style={{ position: "relative" }}>
+                <img src={property.main_image} alt="property" />
+                <span onClick={(e) => { 
+                  e.preventDefault(); 
+                  const token = localStorage.getItem("token");
+                  axios.delete(`/api/wishlist/${property.id}`, { headers: { Authorization: `Bearer ${token}` }});
+                  setWishlistProperties(wishlistProperties.filter(p => p.id !== property.id));
+                  }} style={{ position: "absolute", top: "8px", right: "8px", fontSize: "22px", cursor: "pointer" }}>❤️</span>
+              </div>
               <h3>{property.title}</h3>
               <p>{property.address}</p>
               <p className="price">${property.price}</p>
