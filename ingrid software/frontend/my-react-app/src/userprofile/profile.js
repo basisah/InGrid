@@ -123,7 +123,7 @@ function Profile() {
                   <div style={{ padding: "12px" }}>
                     <strong>{trip.title}</strong>
                     <p style={{ fontSize: "13px", color: "#555", margin: "4px 0" }}>{trip.address}</p>
-                    <p style={{ fontSize: "13px", color: "#1b5e20", margin: "0" }}>${trip.amount} · {formatDate(trip.check_in)} → {formatDate(trip.check_out)}</p> // format dates to be more readable
+                    <p style={{ fontSize: "13px", color: "#1b5e20", margin: "0" }}>${trip.amount} · {formatDate(trip.check_in)} → {formatDate(trip.check_out)}</p> 
                   </div>
                 </div>
               ))}
