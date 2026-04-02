@@ -9,6 +9,11 @@ function Profile() {
   const [trips, setTrips] = useState([]); //exchanged saved listings,history for trips
   const [loading, setLoading] = useState(true);
   const [verificationStatus, setVerificationStatus] = useState("pending");// state for verification status
+  const today = new Date(); // for filtering current vs past trips
+  const formatDate = (dateStr) => dateStr?.split("T")[0]; // helper to format date strings
+  const currentTrips = trips.filter(t => new Date(t.check_out) >= today); // filter for current/upcoming trips
+  const pastTrips = trips.filter(t => new Date(t.check_out) < today); // filter for past trips
+  
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -73,21 +78,20 @@ function Profile() {
             📍 {user.home_address || "Saskatoon, Canada"}
           </p>
 
-          <h4 style={{ marginBottom: "8px" }}>Bio</h4>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "30px", marginBottom: "8px" }}>
+            <h4 style={{ margin: 0 }}>Current Reservations</h4>
+            <span style={{ color: "#1b5e20", cursor: "pointer", fontSize: "14px" }}>See all →</span>
+          </div>
           <hr style={{ marginBottom: "12px" }} />
-          <p style={{ fontSize: "14px", color: "#777" }}>No bio yet.</p>
-
-          <h4 style={{ marginTop: "30px", marginBottom: "8px" }}>Current Reservations</h4>
-          <hr style={{ marginBottom: "12px" }} />
-          {trips.filter(t => t.status === "completed").length === 0 ? (
+          {currentTrips.length === 0 ? (
             <p style={{ fontSize: "14px", color: "#777" }}>No current reservations.</p>
           ) : (
-            trips.filter(t => t.status === "completed").map(t => (
+            currentTrips.map(t => (
               <div key={t.id} style={{ background: "#f5f5f5", borderRadius: "10px", padding: "12px", marginBottom: "10px", fontSize: "14px" }}>
                 <strong>{t.title}</strong>
                 <p style={{ margin: "4px 0", color: "#555" }}>{t.address}</p>
                 <p style={{ margin: "4px 0", color: "#1b5e20" }}>${t.amount}</p>
-                <p style={{ margin: "0", color: "#888" }}>{t.check_in} → {t.check_out}</p>
+                <p style={{ margin: "0", color: "#888" }}>{formatDate(t.check_in)} → {formatDate(t.check_out)}</p>
               </div>
             ))
           )}
@@ -108,7 +112,7 @@ function Profile() {
           <hr style={{ marginBottom: "20px" }} />
 
           {trips.length === 0 ? (
-            <p style={{ color: "#777" }}>No trips yet. Book a property to get started!</p>
+            <p style={{ color: "#777" }}>No past trips yet.</p> //basisah - added message for no past trips
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
               {trips.map(trip => (
@@ -120,7 +124,7 @@ function Profile() {
                   <div style={{ padding: "12px" }}>
                     <strong>{trip.title}</strong>
                     <p style={{ fontSize: "13px", color: "#555", margin: "4px 0" }}>{trip.address}</p>
-                    <p style={{ fontSize: "13px", color: "#1b5e20", margin: "0" }}>${trip.amount} · {trip.check_in} → {trip.check_out}</p>
+                    <p style={{ fontSize: "13px", color: "#1b5e20", margin: "0" }}>${trip.amount} · {formatDate(trip.check_in)} → {formatDate(trip.check_out)}</p> // format dates to be more readable
                   </div>
                 </div>
               ))}
