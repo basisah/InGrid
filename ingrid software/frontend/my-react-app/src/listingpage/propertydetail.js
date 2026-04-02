@@ -26,14 +26,17 @@ const handleReserve = async () => {
   const token = localStorage.getItem("token");
   if (!token) { navigate("/login"); return; }
   if (!checkIn || !checkOut) { setBookingMessage("Please select dates."); return; }
-  try {
-    await axios.post("/api/payments", { property_id: id, check_in: checkIn, check_out: checkOut, guests, amount: total },
-      { headers: { Authorization: `Bearer ${token}` } });
-    setBookingMessage("Booking successful! 🎉");
-    setTimeout(() => navigate("/profile"), 1500);
-  } catch (err) {
-    setBookingMessage("Booking failed. Please try again.");
-  }
+  navigate("/payment", { 
+    state: { 
+      propertyId: id, 
+      checkIn,
+      checkOut, 
+      guests,
+      nights,
+      price_per_night: property.price,
+      total } 
+    }
+  );
 };
   const fetchProperty = async () => {
     const response = await axios.get(`/api/properties/${id}`);
