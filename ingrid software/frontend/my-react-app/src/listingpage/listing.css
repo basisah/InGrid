@@ -216,3 +216,8 @@
   font-weight: bold;
   margin-top: 10px;
 }
+.booking-date-field input[type="date"]::-webkit-calendar-picker-indicator {
+  display: block;
+  cursor: pointer;
+  opacity: 1;
+}
