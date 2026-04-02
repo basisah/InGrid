@@ -341,6 +341,33 @@ app.get("/api/payments", authenticate, async (req, res) => {
   }
 });
 
+// GET WISHLIST
+app.get("/api/wishlist", authenticate, async (req, res) => {
+  const [rows] = await db.query(
+    "SELECT property_id FROM saved_listings WHERE user_id = ?",
+    [req.user.id]
+  );
+  res.json(rows.map(r => r.property_id));
+});
+
+// ADD TO WISHLIST
+app.post("/api/wishlist/:propertyId", authenticate, async (req, res) => {
+  await db.query(
+    "INSERT IGNORE INTO saved_listings (user_id, property_id) VALUES (?, ?)",
+    [req.user.id, req.params.propertyId]
+  );
+  res.json({ message: "Added to wishlist" });
+});
+
+// REMOVE FROM WISHLIST
+app.delete("/api/wishlist/:propertyId", authenticate, async (req, res) => {
+  await db.query(
+    "DELETE FROM saved_listings WHERE user_id = ? AND property_id = ?",
+    [req.user.id, req.params.propertyId]
+  );
+  res.json({ message: "Removed from wishlist" });
+});
+
 // GET FURNITURE RECOMMENDATIONS FOR A PROPERTY
 app.get("/api/furniture/:id", async (req, res) => {
   try {
