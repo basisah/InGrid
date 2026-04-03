@@ -1,16 +1,32 @@
+import React, { useEffect, useState } from "react";
 import Navbar from "./navbar";
 import Main from "./main";
 import Features from "./features";
 import Footer from "./footer";
 import SearchBar from "./searchbar";
-import { useEffect } from "react";
 import PropertyList from "./propertyList";
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "./home.css";
+
 function Home() {
   const [properties, setProperties] = useState([]);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const response = await fetch("/api/properties");
+        const data = await response.json();
+        setProperties(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Failed to fetch homepage properties:", error);
+        setProperties([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperties();
+  }, []);
 
   return (
     <>
@@ -18,7 +34,14 @@ function Home() {
       <Main />
       <SearchBar setProperties={setProperties} />
       <Features />
-      <PropertyList properties={properties} />
+      {loading ? (
+        <section className="property-section fade-in">
+          <h2>Available Properties</h2>
+          <p>Loading properties...</p>
+        </section>
+      ) : (
+        <PropertyList properties={properties} />
+      )}
       <Footer />
     </>
   );
