@@ -1,0 +1,204 @@
+/* ReviewForm.css */
+.review-form {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border: 1px solid #E8EDF2;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  max-width: 520px;
+  width: 100%;
+}
+
+.review-form--success {
+  align-items: center;
+  text-align: center;
+  padding: 48px 28px;
+}
+
+.success-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #D1FAE5;
+  color: #065F46;
+  font-size: 26px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-form--success h3 {
+  margin: 8px 0 4px;
+  font-size: 18px;
+  color: #111827;
+}
+
+.review-form--success p {
+  color: #6B7280;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* ── header ── */
+.review-form__header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-form__header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.review-form__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.form-role-badge {
+  font-size: 12px;
+  font-weight: 600;
+  background: #F3F4F6;
+  color: #374151;
+  padding: 3px 9px;
+  border-radius: 99px;
+}
+
+.form-verified-badge {
+  font-size: 12px;
+  font-weight: 600;
+  background: #D1FAE5;
+  color: #065F46;
+  padding: 3px 9px;
+  border-radius: 99px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── form groups ── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.optional {
+  font-weight: 400;
+  color: #9CA3AF;
+  font-size: 12px;
+}
+
+/* ── interactive stars ── */
+.interactive-stars {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  color: #D1D5DB;
+  transition: color 0.15s ease, transform 0.1s ease;
+  line-height: 0;
+}
+
+.star-btn:hover,
+.star-btn--active {
+  color: #F5A623;
+}
+
+.star-btn:hover {
+  transform: scale(1.15);
+}
+
+.star-btn:focus-visible {
+  outline: 2px solid #6366F1;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.star-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #F5A623;
+  margin-left: 4px;
+}
+
+/* ── textarea ── */
+.review-textarea {
+  border: 1.5px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #374151;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.review-textarea:focus {
+  outline: none;
+  border-color: #6366F1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.review-textarea::placeholder { color: #9CA3AF; }
+.char-count {
+  font-size: 11px;
+  color: #9CA3AF;
+  text-align: right;
+}
+
+/* ── error ── */
+.form-error {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+/* ── submit button ── */
+.submit-btn {
+  background: #4F46E5;
+  color: white;
+  border: none;
+  padding: 13px 24px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease, opacity 0.2s;
+  align-self: flex-start;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: #4338CA;
+  transform: translateY(-1px);
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

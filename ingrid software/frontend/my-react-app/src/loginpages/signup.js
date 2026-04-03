@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 import "./signup.css";
-import logo from "../assets/logo.png"; // <-- update path if needed
+import logo from "../assets/logo.png";
 
 function Signup() {
   const navigate = useNavigate();
@@ -15,28 +16,35 @@ function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [message, setMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
   const getPasswordStrength = () => {
     if (password.length < 6) return "Weak";
-    if (password.match(/[A-Z]/) && password.match(/[0-9]/) && password.length >= 8)
+    if (
+      password.match(/[A-Z]/) &&
+      password.match(/[0-9]/) &&
+      password.length >= 8
+    ) {
       return "Strong";
+    }
     return "Medium";
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
     if (password !== confirmPassword) {
-      setMessage("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
     try {
-      // const API_URL = process.env.REACT_APP_API_URL || "http://localhost:80";
-
       const response = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,31 +60,27 @@ function Signup() {
         })
       });
 
-
       const data = await response.json();
 
       if (response.ok) {
-        setMessage("Signup successful! Please verify your email.");
-        setTimeout(() => navigate("/login"), 4000);
+        toast.success("Signup successful! Please verify your email.");
+        setTimeout(() => navigate("/login"), 2000);
       } else {
-        setMessage(data.message || "Signup failed");
+        toast.error(data.message || "Signup failed");
       }
     } catch (err) {
-        console.error("Frontend signup error:", err);
-        setMessage("Server error. Try again later.");
-      }
+      console.error("Frontend signup error:", err);
+      toast.error("Server error. Try again later.");
+    }
   };
 
   return (
     <div className={`signup-wrapper ${darkMode ? "dark" : ""}`}>
       <div className="signup-card">
-        
-        {/* Logo */}
         <img src={logo} alt="Logo" className="signup-logo" />
 
         <h2>Create Account</h2>
 
-        {/* Dark Mode Toggle */}
         <div className="dark-toggle">
           <label>
             <input
@@ -89,32 +93,58 @@ function Signup() {
         </div>
 
         <form onSubmit={handleSubmit}>
-
           <div className="form-row">
-            <input type="text" placeholder="First Name"
-              value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
-            <input type="text" placeholder="Middle Name"
-              value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
-            <input type="text" placeholder="Last Name"
-              value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+            <input
+              type="text"
+              placeholder="First Name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+            />
+            <input
+              type="text"
+              placeholder="Middle Name"
+              value={middleName}
+              onChange={(e) => setMiddleName(e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="Last Name"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+            />
           </div>
 
-          <input type="date"
+          <input
+            type="date"
             value={dateOfBirth}
-            onChange={(e) => setDateOfBirth(e.target.value)} />
+            onChange={(e) => setDateOfBirth(e.target.value)}
+          />
 
-          <input type="text" placeholder="Home Address"
+          <input
+            type="text"
+            placeholder="Home Address"
             value={homeAddress}
-            onChange={(e) => setHomeAddress(e.target.value)} />
+            onChange={(e) => setHomeAddress(e.target.value)}
+          />
 
           <div className="form-row">
-            <input type="email" placeholder="Email"
-              value={email} onChange={(e) => setEmail(e.target.value)} required />
-            <input type="tel" placeholder="Phone"
-              value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <input
+              type="tel"
+              placeholder="Phone"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+            />
           </div>
 
-          {/* Password Field with Eye Icon */}
           <div className="password-container">
             <input
               type={showPassword ? "text" : "password"}
@@ -131,7 +161,6 @@ function Signup() {
             </span>
           </div>
 
-          {/* Password Strength Meter */}
           {password && (
             <div className={`strength ${getPasswordStrength().toLowerCase()}`}>
               Strength: {getPasswordStrength()}
@@ -148,8 +177,6 @@ function Signup() {
 
           <button type="submit">Create Account</button>
         </form>
-
-        {message && <p className="signup-message">{message}</p>}
       </div>
     </div>
   );

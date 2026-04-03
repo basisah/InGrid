@@ -1,89 +1,158 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
+import Navbar from "../home/navbar";
+import Footer from "../home/footer";
 import "./listing.css";
 
 export default function Compare() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [properties, setProperties] = useState([]);
 
   useEffect(() => {
     if (location.state?.properties) {
-      // Save to localStorage
-      localStorage.setItem(
-        "compare",
-        JSON.stringify(location.state.properties)
-      );
+      localStorage.setItem("compare", JSON.stringify(location.state.properties));
       setProperties(location.state.properties);
     } else {
-      // Load from localStorage if page refreshed
       const saved = JSON.parse(localStorage.getItem("compare")) || [];
       setProperties(saved);
     }
   }, [location.state]);
 
-  if (properties.length === 0)
-    return <h2>No properties selected for comparison.</h2>;
+  if (properties.length === 0) {
+    return (
+      <>
+        <Navbar />
+        <div className="compare-page">
+          <h2>No properties selected for comparison.</h2>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  const cheapest = Math.min(...properties.map((p) => Number(p.price) || 0));
+  const biggest = Math.max(...properties.map((p) => Number(p.size) || 0));
+
+  const bestValueProperty = properties.reduce((best, current) => {
+    const currentSize = Number(current.size) || 1;
+    const bestSize = Number(best.size) || 1;
+
+    const currentValue = Number(current.price) / currentSize;
+    const bestValue = Number(best.price) / bestSize;
+
+    return currentValue < bestValue ? current : best;
+  });
 
   return (
-    <div className="compare-page">
-      <h2>Compare Properties</h2>
+    <>
+      <Navbar />
 
-      <table>
-        <thead>
-          <tr>
-            <th>Feature</th>
-            {properties.map((p) => (
-              <th key={p.id}>{p.title}</th>
-            ))}
-          </tr>
-        </thead>
+      <div className="compare-page">
+        <h2>Compare Properties</h2>
 
-        <tbody>
-          <tr>
-            <td>Price</td>
-            {properties.map((p) => (
-              <td key={p.id}>${p.price}</td>
-            ))}
-          </tr>
+        <div className="compare-cards">
+          {properties.map((p) => {
+            const isCheapest = Number(p.price) === cheapest;
+            const isBiggest = Number(p.size) === biggest;
+            const isBestValue = p.id === bestValueProperty.id;
 
-          <tr>
-            <td>Bedrooms</td>
-            {properties.map((p) => (
-              <td key={p.id}>{p.bedrooms}</td>
-            ))}
-          </tr>
+            return (
+              <div key={p.id} className="compare-card">
+                {isBestValue && <span className="badge best">Best Value</span>}
+                {isCheapest && <span className="badge cheap">Lowest Price</span>}
+                {isBiggest && <span className="badge big">Largest Size</span>}
 
-          <tr>
-            <td>Bathrooms</td>
-            {properties.map((p) => (
-              <td key={p.id}>{p.bathrooms}</td>
-            ))}
-          </tr>
+                <img src={p.main_image} alt={p.title} />
+                <h3>{p.title}</h3>
+                <p>{p.address}</p>
+                <p className="price">${p.price}</p>
 
-          <tr>
-            <td>Size</td>
-            {properties.map((p) => (
-              <td key={p.id}>{p.size} sqft</td>
-            ))}
-          </tr>
+                <Link to={`/property/${p.id}`}>
+                  <button className="details-btn">View Details</button>
+                </Link>
+              </div>
+            );
+          })}
+        </div>
 
-          <tr>
-            <td>Location</td>
-            {properties.map((p) => (
-              <td key={p.id}>{p.address}</td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
+        <table className="compare-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              {properties.map((p) => (
+                <th key={p.id}>{p.title}</th>
+              ))}
+            </tr>
+          </thead>
 
-      <button
-        onClick={() => {
-          localStorage.removeItem("compare");
-          setProperties([]);
-        }}
-      >
-        Clear Compare
-      </button>
-    </div>
+          <tbody>
+            <tr>
+              <td>Price</td>
+              {properties.map((p) => (
+                <td
+                  key={p.id}
+                  className={Number(p.price) === cheapest ? "highlight-green" : ""}
+                >
+                  ${p.price}
+                </td>
+              ))}
+            </tr>
+
+            <tr>
+              <td>Bedrooms</td>
+              {properties.map((p) => (
+                <td key={p.id}>{p.bedrooms}</td>
+              ))}
+            </tr>
+
+            <tr>
+              <td>Bathrooms</td>
+              {properties.map((p) => (
+                <td key={p.id}>{p.bathrooms}</td>
+              ))}
+            </tr>
+
+            <tr>
+              <td>Size</td>
+              {properties.map((p) => (
+                <td
+                  key={p.id}
+                  className={Number(p.size) === biggest ? "highlight-blue" : ""}
+                >
+                  {p.size} sqft
+                </td>
+              ))}
+            </tr>
+
+            <tr>
+              <td>Location</td>
+              {properties.map((p) => (
+                <td key={p.id}>{p.address}</td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+
+        <div className="compare-actions">
+          <button
+            className="clear-btn"
+            onClick={() => {
+              localStorage.removeItem("compare");
+              setProperties([]);
+              navigate("/listings");
+            }}
+          >
+            Clear Compare
+          </button>
+
+          <button className="back-btn" onClick={() => navigate("/listings")}>
+            Back to Listings
+          </button>
+        </div>
+      </div>
+
+      <Footer />
+    </>
   );
 }

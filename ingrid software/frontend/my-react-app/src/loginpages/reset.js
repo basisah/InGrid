@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 import "./reset.css";
-import logo from "../assets/logo.png"; // adjust path if needed
+import logo from "../assets/logo.png";
 
 function ResetPassword() {
   const { token } = useParams();
@@ -9,7 +10,6 @@ function ResetPassword() {
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -20,59 +20,60 @@ function ResetPassword() {
       password.match(/[A-Z]/) &&
       password.match(/[0-9]/) &&
       password.length >= 8
-    )
+    ) {
       return { level: "Strong", width: "100%" };
+    }
     return { level: "Medium", width: "66%" };
   };
+
   const passwordRules = {
-  length: password.length >= 8,
-  uppercase: /[A-Z]/.test(password),
-  lowercase: /[a-z]/.test(password),
-  number: /[0-9]/.test(password),
-  special: /[^A-Za-z0-9]/.test(password),
-};
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[^A-Za-z0-9]/.test(password),
+  };
 
-const isPasswordValid = Object.values(passwordRules).every(Boolean);
-
+  const isPasswordValid = Object.values(passwordRules).every(Boolean);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
+
+    if (!password || !confirmPassword) {
+      toast.error("Please fill in both password fields.");
+      return;
+    }
 
     if (!isPasswordValid) {
-    setMessage("Password does not meet requirements.");
-    return;
+      toast.error("Password does not meet requirements.");
+      return;
     }
 
     if (password !== confirmPassword) {
-     setMessage("Passwords do not match");
-     return;
+      toast.error("Passwords do not match.");
+      return;
     }
-
 
     setLoading(true);
 
     try {
-      // verify token and reset password
-
       const response = await fetch(`/api/reset/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password })
       });
 
-
       const data = await response.json();
 
       if (response.ok) {
-        setMessage("Password reset successful! Redirecting...");
-        setTimeout(() => navigate("/login"), 3000);
+        toast.success("Password reset successful!");
+        setTimeout(() => navigate("/login"), 1500);
       } else {
-        setMessage(data.message || "Failed to reset password.");
+        toast.error(data.message || "Failed to reset password.");
       }
     } catch (error) {
       console.error("Reset password error:", error);
-      setMessage("Server error. Try again later.");
+      toast.error("Server error. Try again later.");
     } finally {
       setLoading(false);
     }
@@ -83,13 +84,10 @@ const isPasswordValid = Object.values(passwordRules).every(Boolean);
   return (
     <div className={`reset-wrapper ${darkMode ? "dark" : ""}`}>
       <div className="reset-card">
-
-        {/* Logo */}
         <img src={logo} alt="Logo" className="reset-logo" />
 
         <h2>Reset Password</h2>
 
-        {/* Dark Mode Toggle */}
         <div className="dark-toggle">
           <label>
             <input
@@ -102,8 +100,6 @@ const isPasswordValid = Object.values(passwordRules).every(Boolean);
         </div>
 
         <form onSubmit={handleSubmit}>
-
-          {/* Password */}
           <div className="password-container">
             <input
               type={showPassword ? "text" : "password"}
@@ -120,7 +116,6 @@ const isPasswordValid = Object.values(passwordRules).every(Boolean);
             </span>
           </div>
 
-          {/* Strength Bar */}
           {password && (
             <div className="strength-wrapper">
               <div className="strength-bar">
@@ -135,8 +130,6 @@ const isPasswordValid = Object.values(passwordRules).every(Boolean);
             </div>
           )}
 
-          {/* Password Rules */}
-          {/* Password Requirements */}
           {password && (
             <div className="requirements">
               <p className={passwordRules.length ? "valid" : "invalid"}>
@@ -157,7 +150,6 @@ const isPasswordValid = Object.values(passwordRules).every(Boolean);
             </div>
           )}
 
-          {/* Confirm Password */}
           <input
             type="password"
             placeholder="Confirm Password"
@@ -170,8 +162,6 @@ const isPasswordValid = Object.values(passwordRules).every(Boolean);
             {loading ? <span className="spinner"></span> : "Reset Password"}
           </button>
         </form>
-
-        {message && <p className="message">{message}</p>}
       </div>
     </div>
   );

@@ -46,6 +46,8 @@ CREATE TABLE properties (
   id INT AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
   address VARCHAR(255) NOT NULL,
+  -- city VARCHAR(100) NOT NULL,
+  -- province VARCHAR(100) NOT NULL,
   type ENUM('rental', 'short-term', 'buy') NOT NULL,
   price DECIMAL(10,2) NOT NULL,
   bedrooms INT,

@@ -1,40 +1,40 @@
 import React, { useState } from "react";
+import { toast } from "react-hot-toast";
 import "./forget.css";
-import logo from "../assets/logo.png"; // adjust path if needed
+import logo from "../assets/logo.png";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
+
+    if (!email.trim()) {
+      toast.error("Please enter your email.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // const API_URL = process.env.REACT_APP_API_URL || "http://localhost:80";
-
       const response = await fetch("/api/forgot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
 
-
       const data = await response.json();
 
       if (response.ok) {
-        setMessage(
-          "If your email exists, a password reset link has been sent."
-        );
+        toast.success("If your email exists, a reset link has been sent.");
       } else {
-        setMessage(data.message || "Failed to send reset link.");
+        toast.error(data.message || "Failed to send reset link.");
       }
     } catch (error) {
       console.error("Forgot password error:", error);
-      setMessage("Server error. Please try again later.");
+      toast.error("Server error. Please try again later.");
     } finally {
       setLoading(false);
       setEmail("");
@@ -44,8 +44,6 @@ function ForgotPassword() {
   return (
     <div className={`forgot-wrapper ${darkMode ? "dark" : ""}`}>
       <div className="forgot-card">
-
-        {/* Logo */}
         <img src={logo} alt="Logo" className="forgot-logo" />
 
         <h2>Forgot Password</h2>
@@ -54,7 +52,6 @@ function ForgotPassword() {
           Enter your email and we’ll send you a reset link.
         </p>
 
-        {/* Dark Mode Toggle */}
         <div className="dark-toggle">
           <label>
             <input
@@ -79,8 +76,6 @@ function ForgotPassword() {
             {loading ? <span className="spinner"></span> : "Send Reset Link"}
           </button>
         </form>
-
-        {message && <p className="message">{message}</p>}
       </div>
     </div>
   );

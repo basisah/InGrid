@@ -278,10 +278,15 @@ app.post("/api/verify-user/:userId", authenticate, async (req, res) => {
 
 // GET ALL LISTINGS (Homepage Search) - made some edits to this route to support search filters, will need to update frontend to match
 app.get("/api/properties", async (req, res) => {
-  const { location, type, minPrice, maxPrice } = req.query;
+  const { keyword, location, type, minPrice, maxPrice } = req.query;
 
-  let query = "SELECT * FROM properties WHERE 1=1";
-  let values = [];
+  let query = "SELECT * FROM properties WHERE is_verified = true";
+  const values = [];
+
+  if (keyword) {
+    query += " AND (title LIKE ? OR description LIKE ? OR address LIKE ?)";
+    values.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
+  }
 
   if (location) {
     query += " AND address LIKE ?";
@@ -290,23 +295,26 @@ app.get("/api/properties", async (req, res) => {
 
   if (type) {
     query += " AND type = ?";
-    values.push(type.toLowerCase()); // match ENUM in DB
+    values.push(type.toLowerCase());
   }
+
   if (minPrice) {
     query += " AND price >= ?";
-    values.push(minPrice);
+    values.push(Number(minPrice));
   }
 
   if (maxPrice) {
     query += " AND price <= ?";
-    values.push(maxPrice);
+    values.push(Number(maxPrice));
   }
+
+  query += " ORDER BY id DESC";
 
   try {
     const [results] = await db.query(query, values);
     res.json(results);
   } catch (err) {
-    console.error(err);
+    console.error("Property search error:", err);
     res.status(500).json({ error: "Database error" });
   }
 });
@@ -333,10 +341,16 @@ app.get("/api/properties/:id", async (req, res) => {
       return res.status(404).json({ message: "Property not found" });
     }
 
-    const [images] = await db.query(
-      "SELECT * FROM property_images WHERE property_id = ?",
-      [req.params.id]
-    );
+    let images = [];
+    try {
+      const [imageRows] = await db.query(
+        "SELECT * FROM property_images WHERE property_id = ?",
+        [req.params.id]
+      );
+      images = imageRows;
+    } catch (err) {
+      console.error("Property images query failed:", err);
+    }
 
     const property = rows[0];
 
@@ -358,14 +372,50 @@ app.get("/api/properties/:id", async (req, res) => {
 app.post("/api/payments", authenticate, async (req, res) => {
   const { property_id, check_in, check_out, guests, amount } = req.body;
   const user_id = req.user.id;
+
   try {
-    await db.query(
-      "INSERT INTO payments (user_id, property_id, check_in, check_out, guests, amount, status) VALUES (?, ?, ?, ?, ?, ?, 'completed')",
-      [user_id, property_id, check_in, check_out, guests, amount]
+    if (!property_id || !check_in || !check_out || !amount) {
+      return res.status(400).json({ error: "Missing required booking fields" });
+    }
+
+    if (new Date(check_out) <= new Date(check_in)) {
+      return res.status(400).json({ error: "Check-out must be after check-in" });
+    }
+
+    if (Number(guests) < 1) {
+      return res.status(400).json({ error: "Guests must be at least 1" });
+    }
+
+    if (Number(amount) <= 0) {
+      return res.status(400).json({ error: "Amount must be greater than 0" });
+    }
+
+    const [propertyRows] = await db.query(
+      "SELECT id, is_verified FROM properties WHERE id = ?",
+      [property_id]
     );
-    res.json({ message: "Booking successful" });
+
+    if (!propertyRows.length) {
+      return res.status(404).json({ error: "Property not found" });
+    }
+
+    if (!propertyRows[0].is_verified) {
+      return res.status(400).json({ error: "Property is not available for booking" });
+    }
+
+    const [result] = await db.query(
+      `INSERT INTO payments 
+       (user_id, property_id, check_in, check_out, guests, amount, status) 
+       VALUES (?, ?, ?, ?, ?, ?, 'completed')`,
+      [user_id, property_id, check_in, check_out, guests || 1, amount]
+    );
+
+    res.json({
+      message: "Booking successful",
+      paymentId: result.insertId
+    });
   } catch (err) {
-    console.error(err);
+    console.error("Payment route error:", err);
     res.status(500).json({ error: "Booking failed" });
   }
 });
@@ -374,22 +424,38 @@ app.post("/api/payments", authenticate, async (req, res) => {
 app.get("/api/payments", authenticate, async (req, res) => {
   try {
     const [rows] = await db.query(
-      "SELECT p.*, pr.title, pr.address FROM payments p JOIN properties pr ON p.property_id = pr.id WHERE p.user_id = ?",
+      `SELECT 
+         p.*,
+         pr.title,
+         pr.address,
+         pr.main_image
+       FROM payments p
+       JOIN properties pr ON p.property_id = pr.id
+       WHERE p.user_id = ?
+       ORDER BY p.created_at DESC`,
       [req.user.id]
     );
+
     res.json(rows);
   } catch (err) {
+    console.error("GET /api/payments error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // GET WISHLIST
 app.get("/api/wishlist", authenticate, async (req, res) => {
-  const [rows] = await db.query(
-    "SELECT property_id FROM saved_listings WHERE user_id = ?",
-    [req.user.id]
-  );
-  res.json(rows.map(r => r.property_id));
+  try {
+    const [rows] = await db.query(
+      "SELECT property_id FROM saved_listings WHERE user_id = ?",
+      [req.user.id]
+    );
+
+    res.json(rows.map((r) => r.property_id));
+  } catch (err) {
+    console.error("Wishlist fetch error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 // ADD TO WISHLIST
@@ -410,7 +476,7 @@ app.delete("/api/wishlist/:propertyId", authenticate, async (req, res) => {
   res.json({ message: "Removed from wishlist" });
 });
 
-
+// GET ALL FURNITURE
 app.get("/api/furniture", async (req, res) => {
   try {
     const [rows] = await db.query("SELECT * FROM furniture");
@@ -426,7 +492,7 @@ app.get("/api/furniture/:id", async (req, res) => {
     const propertyId = req.params.id;
 
     const [propertyRows] = await db.query(
-      "SELECT id, type FROM properties WHERE id = ?",
+      "SELECT id FROM properties WHERE id = ?",
       [propertyId]
     );
 
@@ -435,7 +501,7 @@ app.get("/api/furniture/:id", async (req, res) => {
     }
 
     const [rows] = await db.query(
-      `SELECT id, name, category, price, image_url, color_theme, width, depth
+      `SELECT id, name, category, price, image_url, color_theme
        FROM furniture`
     );
 
@@ -450,34 +516,23 @@ app.get("/api/furniture/:id", async (req, res) => {
     const furnitureWithFitInfo = rows.map((item) => {
       const room = rooms[item.category];
 
-      if (!room) {
-        return {
-          ...item,
-          room: item.category,
-          fits: false,
-          clearance_space: null,
-          reason: "No matching room found for this furniture category"
-        };
-      }
-
-      const fits =
-        Number(item.width) <= room.width && Number(item.depth) <= room.depth;
-
       return {
         ...item,
         room: item.category,
-        fits,
-        clearance_space: fits
-          ? (room.width - Number(item.width)) * (room.depth - Number(item.depth))
-          : null,
-        reason: fits ? "Fits in the room" : "Too large for the room"
+        fits: room ? true : false,
+        clearance_space: null,
+        reason: room
+          ? "Fits in suggested room"
+          : "No matching room found for this furniture category"
       };
     });
 
     res.json(furnitureWithFitInfo);
   } catch (err) {
-    console.error("Error fetching furniture:", err);
-    res.status(500).json({ error: "Failed to fetch furniture" });
+    console.error("GET /api/furniture/:id error:", err);
+    res.status(500).json({
+      error: err.sqlMessage || "Failed to fetch furniture"
+    });
   }
 });
 // GET ALL USERS (ADMIN)
@@ -506,6 +561,8 @@ app.post("/api/properties", authenticate, async (req, res) => {
     const {
       title,
       address,
+      // city,
+      // province,
       type,
       price,
       bedrooms,
@@ -524,6 +581,8 @@ app.post("/api/properties", authenticate, async (req, res) => {
       [
         title,
         address,
+        // city,
+        // province,
         type,
         price,
         bedrooms,
@@ -546,104 +605,63 @@ app.post("/api/properties", authenticate, async (req, res) => {
 app.get("/api/recommendations", authenticate, async (req, res) => {
   const userId = req.user.id;
 
-  // get user's viewed properties
-  const [history] = await db.query(
-    "SELECT * FROM view_history h JOIN properties p ON h.property_id = p.id WHERE h.user_id = ?",
-    [userId]
-  );
-
-  if (history.length === 0) {
-    return res.json([]);
-  }
-
-  const preferredType = history[0].type;
-
-  const [recommendations] = await db.query(
-    "SELECT * FROM properties WHERE type = ? LIMIT 5",
-    [preferredType]
-  );
-
-  res.json(recommendations);
-});
-// SEND MESSAGE TO LANDLORD`
-app.post("/api/messages", async (req, res) => {
-  const { receiver_id, property_id, message } = req.body;
-
-  
-
   try {
-    await db.query(
-      "INSERT INTO messages (sender_id, receiver_id, property_id, message) VALUES (?, ?, ?, ?)",
-      [
-        1,
-        receiver_id || 1,
-        property_id || 1,
-        message || "test message"
-      ]
+    const [history] = await db.query(
+      `SELECT * 
+       FROM view_history h
+       JOIN properties p ON h.property_id = p.id
+       WHERE h.user_id = ?
+       ORDER BY h.viewed_at DESC`,
+      [userId]
     );
 
-    res.json({ message: "Message stored successfully" });
-  } catch (err) {
-    console.error("INSERT ERROR:", err);
-    res.status(500).json({ message: "DB insert failed" });
-  }
-});
-// GET UNVERIFIED PROPERTIES (ADMIN)
-app.get("/api/admin/properties", authenticate, async (req, res) => {
-
-  if (req.user.role !== "admin") {
-    return res.sendStatus(403);
-  }
-
-  const [rows] = await db.query(
-    "SELECT * FROM properties WHERE is_verified = false"
-  );
-
-  res.json(rows);
-});
-
-// VERIFY PROPERTY (ADMIN)
-app.post("/api/admin/approve/:id", authenticate, async (req, res) => {
-
-  if(req.user.role !== "admin"){
-    return res.sendStatus(403);
-   }
-
-  await db.query(
-    "UPDATE properties SET is_verified = true WHERE id = ?",
-    [req.params.id]
-  );
-});
-// GET PROPERTY DETAILS
-app.get("/api/properties/:id", async (req, res) => {
-  try {
-    const [property] = await db.query(
-      "SELECT * FROM properties WHERE id=?",
-      [req.params.id]
-    );
-
-    if (!property.length) {
-      return res.status(404).json({ message: "Property not found" });
+    if (history.length === 0) {
+      return res.json([]);
     }
 
-    const [images] = await db.query(
-      "SELECT * FROM property_images WHERE property_id=?",
-      [req.params.id]
+    const preferredType = history[0].type;
+
+    const [recommendations] = await db.query(
+      "SELECT * FROM properties WHERE type = ? AND is_verified = true LIMIT 5",
+      [preferredType]
     );
 
-    res.json({
-      ...property[0],
-      images
-    });
-
+    res.json(recommendations);
   } catch (err) {
+    console.error("GET /api/recommendations error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-app.get("/api/messages/:propertyId/:receiverId", async (req, res) => {
+// SEND MESSAGE TO LANDLORD
+app.post("/api/messages", authenticate, async (req, res) => {
+  const { receiver_id, property_id, message } = req.body;
+  const sender_id = req.user.id;
+
+  if (!receiver_id || !property_id || !message?.trim()) {
+    return res.status(400).json({
+      message: "receiver_id, property_id, and message are required"
+    });
+  }
+
+  try {
+    await db.query(
+      "INSERT INTO messages (sender_id, receiver_id, property_id, message) VALUES (?, ?, ?, ?)",
+      [sender_id, receiver_id, property_id, message.trim()]
+    );
+
+    res.json({ message: "Message stored successfully" });
+  } catch (err) {
+    console.error("POST /api/messages error:", err);
+    res.status(500).json({ message: "DB insert failed" });
+  }
+});
+
+
+// GET MESSAGES FOR A PROPERTY BETWEEN USER AND LANDLORD
+app.get("/api/messages/:propertyId/:receiverId", authenticate, async (req, res) => {
   const { propertyId, receiverId } = req.params;
-  const currentUserId = 1;
+  const currentUserId = req.user.id;
 
   try {
     const [rows] = await db.query(
@@ -674,6 +692,122 @@ app.get("/api/messages/:propertyId/:receiverId", async (req, res) => {
     res.status(500).json({ message: err.sqlMessage || "Failed to load messages" });
   }
 });
+
+// GET UNVERIFIED PROPERTIES (ADMIN)
+app.get("/api/admin/properties", authenticate, async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.sendStatus(403);
+  }
+
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM properties WHERE is_verified = false"
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error("Admin properties error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// VERIFY PROPERTY (ADMIN)
+app.post("/api/admin/approve/:id", authenticate, async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.sendStatus(403);
+  }
+
+  try {
+    await db.query(
+      "UPDATE properties SET is_verified = true WHERE id = ?",
+      [req.params.id]
+    );
+
+    res.json({ message: "Property approved successfully" });
+  } catch (err) {
+    console.error("Approve property error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// SAVE LISTING
+app.post("/api/save/:id", authenticate, async (req, res) => {
+  const userId = req.user.id;
+  const propertyId = req.params.id;
+
+  try {
+    await db.query(
+      "INSERT IGNORE INTO saved_listings (user_id, property_id) VALUES (?, ?)",
+      [userId, propertyId]
+    );
+
+    res.json({ message: "Saved!" });
+  } catch (err) {
+    res.status(500).json({ message: "Error saving listing" });
+  }
+});
+
+// REMOVE SAVED
+app.delete("/api/save/:id", authenticate, async (req, res) => {
+  const userId = req.user.id;
+  const propertyId = req.params.id;
+
+  try {
+    await db.query(
+      "DELETE FROM saved_listings WHERE user_id=? AND property_id=?",
+      [userId, propertyId]
+    );
+
+    res.json({ message: "Removed" });
+  } catch (err) {
+    res.status(500).json({ message: "Error removing listing" });
+  }
+});
+// GET PENDING USERS (ADMIN)
+app.get("/api/admin/pending-users", authenticate, async (req, res) => {
+
+  if (req.user.role !== "admin") {
+    return res.sendStatus(403);
+  }
+
+  try {
+    const [rows] = await db.query(`
+      SELECT u.id, u.first_name, u.last_name, u.email, u.role
+      FROM users u
+      JOIN account_verification av ON u.id = av.user_id
+      WHERE av.status = 'pending'
+    `);
+
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+// REJECT PROPERTY (ADMIN)
+app.post("/api/admin/reject/:id", authenticate, async (req, res) => {
+
+  if (req.user.role !== "admin") {
+    return res.sendStatus(403);
+  }
+
+  try {
+    await db.query("DELETE FROM properties WHERE id = ?", [req.params.id]);
+    res.json({ message: "Property rejected and removed" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+//REVIEW SESSION
+const reviewController = require("./controller/reviewController");
+
+// REVIEWS
+app.post("/api/reviews", authenticate, reviewController.createReview);
+app.get("/api/reviews/property/:id", reviewController.getPropertyReviews);
+app.get("/api/reviews/landlord/:id", reviewController.getLandlordReviews);
+app.get("/api/reviews/area/:name", reviewController.getAreaReviews);
+
+
 // ------------------- START SERVER -------------------
 app.listen(PORT, HOST, () => {
   console.log(`Server running at http://${HOST}:${PORT}`);

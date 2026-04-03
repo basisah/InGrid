@@ -1,0 +1,116 @@
+/* reviewList.css */
+
+/* ── aggregate bar ── */
+.aggregate-bar {
+  background: linear-gradient(135deg, #F9FAFB, #F3F4F6);
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 4px;
+}
+
+.aggregate-score {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.aggregate-number {
+  font-size: 36px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1;
+}
+
+.aggregate-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.aggregate-count {
+  font-size: 13px;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+/* ── filters ── */
+.review-list__filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  background: #F9FAFB;
+  border: 1.5px solid #E5E7EB;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.filter-btn:hover {
+  border-color: #6366F1;
+  color: #4F46E5;
+}
+
+.filter-btn--active {
+  background: #EEF2FF;
+  border-color: #6366F1;
+  color: #4F46E5;
+  font-weight: 600;
+}
+
+/* ── grid ── */
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-list__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* ── empty / error ── */
+.review-list__empty,
+.review-list__error {
+  text-align: center;
+  padding: 40px;
+  color: #9CA3AF;
+  font-size: 14px;
+  border: 1.5px dashed #E5E7EB;
+  border-radius: 12px;
+}
+
+.review-list__error {
+  color: #DC2626;
+  border-color: #FECACA;
+  background: #FEF2F2;
+}
+
+/* ── skeleton loading ── */
+.review-list__skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.skeleton-card {
+  height: 160px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
