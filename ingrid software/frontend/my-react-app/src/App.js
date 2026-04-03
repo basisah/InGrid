@@ -1,14 +1,14 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Payment from "./pages/payment.js";
-import Wishlist from "./pages/wishlist.js";
-import TripHistory from "./pages/triphistory.js";
+import Payment from "./payment system/payment.js";
+import Wishlist from "./userprofile/wishlist.js";
+import TripHistory from "./userprofile/triphistory.js";
 import { Toaster } from "react-hot-toast";
 
-import Signup from "./pages/signup";
-import Login from "./pages/login";
-import ForgotPassword from "./pages/forget";
-import ResetPassword from "./pages/reset";
+import Signup from "./loginpages/signup.js";
+import Login from "./loginpages/login.js";
+import ForgotPassword from "./loginpages/forget.js";
+import ResetPassword from "./loginpages/reset.js";
 import Profile from "./userprofile/profile";
 import Home from "./home/home";
 import Listings from "./listingpage/listing";
@@ -16,9 +16,9 @@ import PropertyDetail from "./listingpage/propertydetail";
 import Compare from "./listingpage/compare";
 import PostProperty from "./property/property";
 import AdminDashboard from "./adminpage/AdminDashboard";
-import Verify from "./pages/verify";
-import ChatPage from "./pages/chat";
-import FurnitureStore from "./pages/furniturestore";
+import Verify from "./loginpages/verify.js";
+import ChatPage from "./listingpage/chat.js";
+import FurnitureStore from "./furniture/furniturestore.js";
 
 // Private Route Wrapper
 const PrivateRoute = ({ children }) => {

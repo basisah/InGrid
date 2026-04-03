@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import Navbar from "../home/navbar";
+import Footer from "../home/footer";
 import "./listing.css";
 
 export default function Compare() {
@@ -10,10 +11,7 @@ export default function Compare() {
 
   useEffect(() => {
     if (location.state?.properties) {
-      localStorage.setItem(
-        "compare",
-        JSON.stringify(location.state.properties)
-      );
+      localStorage.setItem("compare", JSON.stringify(location.state.properties));
       setProperties(location.state.properties);
     } else {
       const saved = JSON.parse(localStorage.getItem("compare")) || [];
@@ -28,16 +26,21 @@ export default function Compare() {
         <div className="compare-page">
           <h2>No properties selected for comparison.</h2>
         </div>
+        <Footer />
       </>
     );
   }
 
-  const cheapest = Math.min(...properties.map((p) => p.price));
-  const biggest = Math.max(...properties.map((p) => p.size));
+  const cheapest = Math.min(...properties.map((p) => Number(p.price) || 0));
+  const biggest = Math.max(...properties.map((p) => Number(p.size) || 0));
 
   const bestValueProperty = properties.reduce((best, current) => {
-    const currentValue = current.price / current.size;
-    const bestValue = best.price / best.size;
+    const currentSize = Number(current.size) || 1;
+    const bestSize = Number(best.size) || 1;
+
+    const currentValue = Number(current.price) / currentSize;
+    const bestValue = Number(best.price) / bestSize;
+
     return currentValue < bestValue ? current : best;
   });
 
@@ -50,14 +53,10 @@ export default function Compare() {
 
         <div className="compare-cards">
           {properties.map((p) => {
-            const isCheapest = p.price === cheapest;
-            const isBiggest = p.size === biggest;
+            const isCheapest = Number(p.price) === cheapest;
+            const isBiggest = Number(p.size) === biggest;
             const isBestValue = p.id === bestValueProperty.id;
 
-              {/* 🏆 BADGES */}
-              {isBestValue && <span className="badge best">Best Value</span>}
-              {isCheapest && <span className="badge cheap">Lowest Price</span>}
-              {isBiggest && <span className="badge big">Largest Size</span>}
             return (
               <div key={p.id} className="compare-card">
                 {isBestValue && <span className="badge best">Best Value</span>}
@@ -65,14 +64,13 @@ export default function Compare() {
                 {isBiggest && <span className="badge big">Largest Size</span>}
 
                 <img src={p.main_image} alt={p.title} />
-
                 <h3>{p.title}</h3>
                 <p>{p.address}</p>
                 <p className="price">${p.price}</p>
 
-                <a href={`/property/${p.id}`}>
+                <Link to={`/property/${p.id}`}>
                   <button className="details-btn">View Details</button>
-                </a>
+                </Link>
               </div>
             );
           })}
@@ -94,7 +92,7 @@ export default function Compare() {
               {properties.map((p) => (
                 <td
                   key={p.id}
-                  className={p.price === cheapest ? "highlight-green" : ""}
+                  className={Number(p.price) === cheapest ? "highlight-green" : ""}
                 >
                   ${p.price}
                 </td>
@@ -120,7 +118,7 @@ export default function Compare() {
               {properties.map((p) => (
                 <td
                   key={p.id}
-                  className={p.size === biggest ? "highlight-blue" : ""}
+                  className={Number(p.size) === biggest ? "highlight-blue" : ""}
                 >
                   {p.size} sqft
                 </td>
@@ -148,88 +146,13 @@ export default function Compare() {
             Clear Compare
           </button>
 
-          <button
-            className="back-btn"
-            onClick={() => navigate("/listings")}
-          >
+          <button className="back-btn" onClick={() => navigate("/listings")}>
             Back to Listings
           </button>
         </div>
+      </div>
 
-      {/*  TABLE COMPARISON */}
-      <table className="compare-table">
-        <thead>
-          <tr>
-            <th>Feature</th>
-            {properties.map((p) => (
-              <th key={p.id}>{p.title}</th>
-            ))}
-          </tr>
-        </thead>
-
-        <tbody>
-          {/* PRICE */}
-          <tr>
-            <td>Price</td>
-            {properties.map((p) => (
-              <td
-                key={p.id}
-                className={p.price === cheapest ? "highlight-green" : ""}
-              >
-                ${p.price}
-              </td>
-            ))}
-          </tr>
-
-          {/* BEDROOMS */}
-          <tr>
-            <td>Bedrooms</td>
-            {properties.map((p) => (
-              <td key={p.id}>{p.bedrooms}</td>
-            ))}
-          </tr>
-
-          {/* BATHROOMS */}
-          <tr>
-            <td>Bathrooms</td>
-            {properties.map((p) => (
-              <td key={p.id}>{p.bathrooms}</td>
-            ))}
-          </tr>
-
-          {/* SIZE */}
-          <tr>
-            <td>Size</td>
-            {properties.map((p) => (
-              <td
-                key={p.id}
-                className={p.size === biggest ? "highlight-blue" : ""}
-              >
-                {p.size} sqft
-              </td>
-            ))}
-          </tr>
-
-          {/* LOCATION */}
-          <tr>
-            <td>Location</td>
-            {properties.map((p) => (
-              <td key={p.id}>{p.address}</td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
-
-      <button
-        className="clear-btn"
-        onClick={() => {
-          localStorage.removeItem("compare");
-          setProperties([]);
-        }}
-      >
-        Clear Compare
-      </button>
-    </div>
+      <Footer />
     </>
   );
 }

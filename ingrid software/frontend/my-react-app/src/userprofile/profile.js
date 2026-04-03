@@ -1,174 +1,257 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Navbar from "../home/navbar";
+import Footer from "../home/footer";
+import "./profile.css";
 
-//mking changes to profilepage
 function Profile() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [trips, setTrips] = useState([]); //exchanged saved listings,history for trips
+  const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [verificationStatus, setVerificationStatus] = useState("pending");// state for verification status
-  const today = new Date(); // for filtering current vs past trips
-  const formatDate = (dateStr) => dateStr?.split("T")[0]; // helper to format date strings
-  const currentTrips = trips.filter(t => new Date(t.check_out) >= today); // filter for current/upcoming trips
-  const pastTrips = trips.filter(t => new Date(t.check_out) < today); // filter for past trips
+  const [verificationStatus, setVerificationStatus] = useState("pending");
   const [editingPicture, setEditingPicture] = useState(false);
 
-const handlePictureUpload = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onloadend = async () => {
-    const base64 = reader.result;
-    const token = localStorage.getItem("token");
-    await axios.put("/api/profile/picture", 
-      { profile_picture: base64 },
-      { headers: { Authorization: `Bearer ${token}` }}
-    );
-    setUser({ ...user, profile_picture: base64 });
-    setEditingPicture(false);
+  const today = new Date();
+  const formatDate = (dateStr) => dateStr?.split("T")[0];
+
+  const currentTrips = trips.filter((t) => new Date(t.check_out) >= today);
+  const pastTrips = trips.filter((t) => new Date(t.check_out) < today);
+
+  const handlePictureUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      try {
+        const base64 = reader.result;
+        const token = localStorage.getItem("token");
+
+        await axios.put(
+          "/api/profile/picture",
+          { profile_picture: base64 },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        setUser((prev) => ({ ...prev, profile_picture: base64 }));
+        setEditingPicture(false);
+      } catch (error) {
+        console.error("Profile picture upload failed:", error);
+      }
+    };
+
+    reader.readAsDataURL(file);
   };
-  reader.readAsDataURL(file);
-};
-  
 
   useEffect(() => {
     const fetchProfile = async () => {
       const token = localStorage.getItem("token");
+
       if (!token) {
-        navigate("/login"); // redirect if no token
+        navigate("/login");
         return;
       }
+
       try {
         const profileRes = await fetch("/api/profile", {
-          headers: { Authorization: `Bearer ${token}` } 
+          headers: { Authorization: `Bearer ${token}` },
         });
         const data = await profileRes.json();
-        setUser(data.user); // assuming backend sends { user: { ... } }
+        setUser(data.user);
 
         const verifyRes = await axios.get(`/api/verify-status/${data.user.id}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setVerificationStatus(verifyRes.data.status);
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setVerificationStatus(verifyRes.data.status);
 
-    const tripsRes = await axios.get("/api/payments", {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setTrips(tripsRes.data);
-  }     catch (error) {
+        const tripsRes = await axios.get("/api/payments", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTrips(Array.isArray(tripsRes.data) ? tripsRes.data : []);
+      } catch (error) {
         console.error("Profile fetch error:", error);
-        navigate("/login"); // redirect on error (e.g. invalid token)
+        navigate("/login");
       } finally {
         setLoading(false);
       }
     };
- fetchProfile();
+
+    fetchProfile();
   }, [navigate]);
 
-  if (loading) return <p style={{ padding: "40px" }}>Loading profile...</p>;
-  if (!user) return <p style={{ padding: "40px" }}>No user data available.</p>;
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <p style={{ padding: "40px" }}>Loading profile...</p>
+        <Footer />
+      </>
+    );
+  }
+
+  if (!user) {
+    return (
+      <>
+        <Navbar />
+        <p style={{ padding: "40px" }}>No user data available.</p>
+        <Footer />
+      </>
+    );
+  }
 
   return (
-    <div style={{ fontFamily: "Segoe UI, sans-serif", maxWidth: "1100px", margin: "40px auto", padding: "0 20px" }}>
-      <div style={{ display: "flex", gap: "60px" }}>
+    <>
+      <Navbar />
 
-        {/* LEFT SIDE */}
-        <div style={{ width: "280px", flexShrink: 0 }}>
-          <div style={{ position: "relative", width: "100px", marginBottom: "16px" }}>
-            {user.profile_picture ? (
-              <img src={user.profile_picture} alt="avatar"
-              style={{ width: "100px", height: "100px", borderRadius: "50%", objectFit: "cover" }} />
-            ) : (
-            <div style={{ width: "100px", height: "100px", borderRadius: "50%", background: "#1b5e20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "40px", color: "white" }}>
-              👤
+      <div className="profile-shell">
+        <div className="profile-layout">
+          <aside className="profile-sidebar-panel">
+            <div className="profile-avatar-wrap">
+              {user.profile_picture ? (
+                <img
+                  src={user.profile_picture}
+                  alt="avatar"
+                  className="profile-avatar"
+                />
+              ) : (
+                <div className="profile-avatar profile-avatar-fallback">👤</div>
+              )}
+
+              <button
+                className="profile-edit-btn"
+                onClick={() => setEditingPicture(!editingPicture)}
+                type="button"
+              >
+                ✏️
+              </button>
             </div>
-          )}
-  <button onClick={() => setEditingPicture(!editingPicture)}
-    style={{ position: "absolute", bottom: 0, right: 0, background: "#1b5e20", color: "white", border: "none", borderRadius: "50%", width: "28px", height: "28px", cursor: "pointer", fontSize: "14px" }}>
-    ✏️
-  </button>
-  {editingPicture && (
-    <input type="file" accept="image/*" onChange={handlePictureUpload}
-      style={{ marginTop: "8px", fontSize: "12px", width: "100px" }} />
-  )}
-</div>
 
-          <h2 style={{ margin: "0 0 4px" }}>
-            {user.first_name} {user.last_name}
-            {verificationStatus === "verified" && <span style={{ marginLeft: "8px", color: "#27ae60" }}>✅</span>}
-            {verificationStatus === "pending" && <span style={{ marginLeft: "8px", color: "#f39c12" }}>⏳</span>}
-            {verificationStatus === "rejected" && <span style={{ marginLeft: "8px", color: "#e74c3c" }}>❌</span>}
-          </h2>
+            {editingPicture && (
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePictureUpload}
+                className="profile-file-input"
+              />
+            )}
 
-          <div style={{ display: "flex", gap: "16px", margin: "12px 0", fontSize: "14px", color: "#555" }}>
-            <span><strong>{trips.length}</strong> Trips</span>
-            <span>|</span>
-            <span><strong>0</strong> Reviews</span>
-          </div>
+            <h2 className="profile-name">
+              {user.first_name} {user.last_name}
+              {verificationStatus === "verified" && (
+                <span className="profile-verified">✅</span>
+              )}
+              {verificationStatus === "pending" && (
+                <span className="profile-pending">⏳</span>
+              )}
+              {verificationStatus === "rejected" && (
+                <span className="profile-rejected">❌</span>
+              )}
+            </h2>
 
-          <p style={{ fontSize: "14px", color: "#555", marginBottom: "16px" }}>
-            📍 {user.home_address || "Saskatoon, Canada"}
-          </p>
+            <div className="profile-mini-stats">
+              <span><strong>{trips.length}</strong> Trips</span>
+              <span>|</span>
+              <span><strong>{pastTrips.length}</strong> Past</span>
+            </div>
 
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "30px", marginBottom: "8px" }}>
-            <h4 style={{ margin: 0 }}>Current Reservations</h4>
-          </div>
-          <hr style={{ marginBottom: "12px" }} />
-          {currentTrips.length === 0 ? (
-            <p style={{ fontSize: "14px", color: "#777" }}>No current reservations.</p>
-          ) : (
-            currentTrips.map(t => (
-              <div key={t.id} style={{ background: "#f5f5f5", borderRadius: "10px", padding: "12px", marginBottom: "10px", fontSize: "14px" }}>
-                <strong>{t.title}</strong>
-                <p style={{ margin: "4px 0", color: "#555" }}>{t.address}</p>
-                <p style={{ margin: "4px 0", color: "#1b5e20" }}>${t.amount}</p>
-                <p style={{ margin: "0", color: "#888" }}>{formatDate(t.check_in)} → {formatDate(t.check_out)}</p>
+            <p className="profile-location">
+              📍 {user.home_address || "Saskatoon, Canada"}
+            </p>
+
+            <div className="profile-info-card">
+              <h3>Account Info</h3>
+              <p>📧 {user.email}</p>
+              <p>📞 {user.phone_number || "Not provided"}</p>
+              <p>🎂 {user.date_of_birth || "Not provided"}</p>
+            </div>
+
+            <button className="logout-btn" onClick={handleLogout}>
+              Log Out
+            </button>
+          </aside>
+
+          <main className="profile-main-panel">
+            <section className="profile-block">
+              <div className="profile-block-header">
+                <h3>Current Reservations</h3>
               </div>
-            ))
-          )}
 
-          <h4 style={{ marginTop: "30px", marginBottom: "8px" }}>Account Info</h4>
-          <hr style={{ marginBottom: "12px" }} />
-          <p style={{ fontSize: "14px", color: "#555" }}>📧 {user.email}</p>
-          <p style={{ fontSize: "14px", color: "#555" }}>📞 {user.phone_number || "Not provided"}</p>
-          <p style={{ fontSize: "14px", color: "#555" }}>🎂 {user.date_of_birth || "Not provided"}</p>
-        </div>
-
-        {/* RIGHT SIDE */}
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <h3 style={{ margin: 0 }}>Previous Trips</h3>
-            <span onClick={() => navigate("/trips")} style={{ color: "#1b5e20", cursor: "pointer", fontSize: "14px" }}>See all →</span>
-          </div>
-          <hr style={{ marginBottom: "20px" }} />
-
-          {pastTrips.length === 0 ? (
-            <p style={{ color: "#777" }}>No past trips yet.</p> //basisah - added message for no past trips
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-              {pastTrips.map(trip => (
-                <div key={trip.id} style={{ borderRadius: "14px", overflow: "hidden", boxShadow: "0 4px 15px rgba(0,0,0,0.08)", cursor: "pointer" }}
-                  onClick={() => navigate(`/property/${trip.property_id}`)}>
-                  <div style={{ height: "140px", background: "#e0e0e0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "40px" }}>
-                    🏠
-                  </div>
-                  <div style={{ padding: "12px" }}>
-                    <strong>{trip.title}</strong>
-                    <p style={{ fontSize: "13px", color: "#555", margin: "4px 0" }}>{trip.address}</p>
-                    <p style={{ fontSize: "13px", color: "#1b5e20", margin: "0" }}>${trip.amount} · {formatDate(trip.check_in)} → {formatDate(trip.check_out)}</p> 
-                  </div>
+              {currentTrips.length === 0 ? (
+                <p className="profile-empty">No current reservations.</p>
+              ) : (
+                <div className="profile-trip-list">
+                  {currentTrips.map((trip) => (
+                    <div
+                      key={trip.id}
+                      className="profile-reservation-card"
+                      onClick={() => navigate(`/property/${trip.property_id}`)}
+                    >
+                      <img
+                        src={trip.main_image || "https://via.placeholder.com/400x240?text=Property"}
+                        alt={trip.title}
+                      />
+                      <div className="profile-reservation-info">
+                        <strong>{trip.title}</strong>
+                        <p>{trip.address}</p>
+                        <p>${trip.amount}</p>
+                        <span>
+                          {formatDate(trip.check_in)} → {formatDate(trip.check_out)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              )}
+            </section>
 
+            <section className="profile-block">
+              <div className="profile-block-header">
+                <h3>Previous Trips</h3>
+                <span onClick={() => navigate("/trips")} className="profile-linkish">
+                  See all →
+                </span>
+              </div>
+
+              {pastTrips.length === 0 ? (
+                <p className="profile-empty">No past trips yet.</p>
+              ) : (
+                <div className="profile-trip-grid">
+                  {pastTrips.map((trip) => (
+                    <div
+                      key={trip.id}
+                      className="profile-trip-card"
+                      onClick={() => navigate(`/property/${trip.property_id}`)}
+                    >
+                      <img
+                        src={trip.main_image || "https://via.placeholder.com/400x240?text=Property"}
+                        alt={trip.title}
+                      />
+                      <div className="profile-trip-content">
+                        <strong>{trip.title}</strong>
+                        <p>{trip.address}</p>
+                        <p className="profile-trip-price">
+                          ${trip.amount} · {formatDate(trip.check_in)} → {formatDate(trip.check_out)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </main>
+        </div>
       </div>
-    </div>
+
+      <Footer />
+    </>
   );
 }
+
 export default Profile;
-
-
-

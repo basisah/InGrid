@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../home/navbar";
+import Footer from "../home/footer";
 import ReviewList from "../reviewpage/reviewList";
 import ReviewForm from "../reviewpage/reviewForm";
 import "./listing.css";
@@ -9,14 +10,16 @@ import "./listing.css";
 export default function PropertyDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const [bookingId, setBookingId] = useState(null);
   const [property, setProperty] = useState(null);
   const [furniture, setFurniture] = useState([]);
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(1);
+  const [bookingMessage, setBookingMessage] = useState("");
   const [saved, setSaved] = useState(false);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
-  const [messageStatus, setMessageStatus] = useState("");
 
   const calculateNights = () => {
     if (!checkIn || !checkOut) return 0;
@@ -25,14 +28,39 @@ export default function PropertyDetail() {
   };
 
   const nights = calculateNights();
-  const total = nights * property?.price;
+  const total = property ? nights * Number(property.price) : 0;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const propertyRes = await axios.get(`/api/properties/${id}`);
+        const furnitureRes = await axios.get(`/api/furniture/${id}`);
+
+        setProperty(propertyRes.data);
+        setFurniture(Array.isArray(furnitureRes.data) ? furnitureRes.data : []);
+      } catch (error) {
+        console.error("Failed to load property details:", error);
+      }
+    };
+
+    fetchData();
+  }, [id]);
 
   const handleReserve = async () => {
     const token = localStorage.getItem("token");
-    if (!token) { setShowLoginPopup(true); return; }
-    if (!checkIn || !checkOut) { alert("Please select dates."); return; }
-    navigate("/payment", { 
-      state: { 
+
+    if (!token) {
+      setShowLoginPopup(true);
+      return;
+    }
+
+    if (!checkIn || !checkOut) {
+      setBookingMessage("Please select check-in and check-out dates.");
+      return;
+    }
+
+    navigate("/payment", {
+      state: {
         property_id: id,
         property_title: property.title,
         property_image: property.main_image,
@@ -41,8 +69,8 @@ export default function PropertyDetail() {
         guests,
         nights,
         price_per_night: property.price,
-        total
-      } 
+        total,
+      },
     });
   };
 
@@ -73,22 +101,6 @@ export default function PropertyDetail() {
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const propertyRes = await axios.get(`/api/properties/${id}`);
-        const furnitureRes = await axios.get(`/api/furniture/${id}`);
-
-        setProperty(propertyRes.data);
-        setFurniture(furnitureRes.data || []);
-      } catch (error) {
-        console.error("Failed to load property details:", error);
-      }
-    };
-
-    fetchData();
-  }, [id]);
-
   if (!property) return <div style={{ padding: "40px" }}>Loading...</div>;
 
   const images =
@@ -101,12 +113,10 @@ export default function PropertyDetail() {
       <Navbar />
 
       <div className="property-detail-page">
-        <button
-          className="back-btn"
-          onClick={() => navigate("/listings")}
-        >
+        <button className="back-btn" onClick={() => navigate("/listings")}>
           ← Back to Listings
         </button>
+
         <div className="property-gallery">
           <div className="gallery-main">
             <img
@@ -127,7 +137,6 @@ export default function PropertyDetail() {
         </div>
 
         <div className="property-header">
-          
           <div>
             <h1>{property.title}</h1>
             <p className="property-address">{property.address}</p>
@@ -148,8 +157,20 @@ export default function PropertyDetail() {
         <div className="property-main-layout">
           <div className="property-main-content">
             <section className="property-section-card">
+              <h3>Description</h3>
+              <p className="property-description">{property.description}</p>
+            </section>
+
+            <section className="property-section-card">
               <h3>Property Reviews</h3>
               <ReviewList type="property" id={property.id} />
+              {bookingId && (
+                <ReviewForm
+                  bookingId={bookingId}
+                  propertyId={property.id}
+                  reviewType="PROPERTY"
+                />
+              )}
             </section>
 
             <section className="property-section-card">
@@ -157,11 +178,27 @@ export default function PropertyDetail() {
               {property.landlord_id && (
                 <ReviewList type="landlord" id={property.landlord_id} />
               )}
+              {bookingId && property.landlord_id && (
+                <ReviewForm
+                  bookingId={bookingId}
+                  propertyId={property.id}
+                  reviewType="LANDLORD"
+                  revieweeUserId={property.landlord_id}
+                />
+              )}
             </section>
 
             <section className="property-section-card">
               <h3>Area Reviews</h3>
               <ReviewList type="area" id={property.address} />
+              {bookingId && (
+                <ReviewForm
+                  bookingId={bookingId}
+                  propertyId={property.id}
+                  reviewType="AREA"
+                  areaName={property.address}
+                />
+              )}
             </section>
 
             <section className="property-section-card">
@@ -224,6 +261,7 @@ export default function PropertyDetail() {
                       <input
                         type="date"
                         value={checkOut}
+                        min={checkIn}
                         onChange={(e) => setCheckOut(e.target.value)}
                       />
                     </div>
@@ -261,28 +299,34 @@ export default function PropertyDetail() {
 
                 <div className="contact-box">
                   <h3>Contact Agent</h3>
-                  <button className=" contact-primary-btn" onClick={() => {
-                    const token = localStorage.getItem("token");
+                  <p style={{ marginBottom: "12px", color: "#6b7280" }}>
+                    {property.seller?.name}
+                  </p>
 
-                    if (!token) {
-                      setMessageStatus("Please log in first.");
-                      return;
+                  <button
+                    className="contact-primary-btn"
+                    onClick={() =>
+                      navigate(`/chat/${property.id}/${property.landlord_id || 1}`)
                     }
+                  >
+                    Message Agent
+                  </button>
 
-                    if (!property?.landlord_id) {
-                      setMessageStatus("Agent information is missing for this property.");
-                      return;
-                    }
-
-                    navigate(`/chat/${id}/${property.landlord_id}`);
-                  }}>Message Agent</button>
                   <button className="contact-save-btn" onClick={handleSave}>
                     {saved ? "Saved ♥" : "Save Listing"}
                   </button>
                 </div>
 
-                {messageStatus && (
-                  <p style={{ marginTop: "10px" }}>{messageStatus}</p>
+                {bookingMessage && (
+                  <p
+                    className={
+                      bookingMessage.includes("successful")
+                        ? "booking-message-success"
+                        : "booking-message-error"
+                    }
+                  >
+                    {bookingMessage}
+                  </p>
                 )}
               </div>
             </div>
@@ -290,24 +334,86 @@ export default function PropertyDetail() {
         </div>
       </div>
 
-      {/* basisah - login popup for unauthenticated users */}
       {showLoginPopup && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ background: "white", borderRadius: "16px", padding: "32px", textAlign: "center", width: "340px" }}>
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "16px",
+              padding: "32px",
+              textAlign: "center",
+              width: "340px",
+            }}
+          >
             <h3 style={{ marginBottom: "12px" }}>Sign in to book</h3>
-            <p style={{ color: "#555", marginBottom: "24px" }}>You need to be logged in to make a reservation.</p>
-            <button onClick={() => navigate("/login")} style={{ width: "100%", padding: "12px", background: "#1b5e20", color: "white", border: "none", borderRadius: "8px", fontSize: "15px", cursor: "pointer", marginBottom: "10px" }}>
+            <p style={{ color: "#555", marginBottom: "24px" }}>
+              You need to be logged in to make a reservation.
+            </p>
+
+            <button
+              onClick={() => navigate("/login")}
+              style={{
+                width: "100%",
+                padding: "12px",
+                background: "#1b5e20",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                fontSize: "15px",
+                cursor: "pointer",
+                marginBottom: "10px",
+              }}
+            >
               Log In
             </button>
-            <button onClick={() => navigate("/signup")} style={{ width: "100%", padding: "12px", background: "white", color: "#1b5e20", border: "1px solid #1b5e20", borderRadius: "8px", fontSize: "15px", cursor: "pointer", marginBottom: "10px" }}>
+
+            <button
+              onClick={() => navigate("/signup")}
+              style={{
+                width: "100%",
+                padding: "12px",
+                background: "white",
+                color: "#1b5e20",
+                border: "1px solid #1b5e20",
+                borderRadius: "8px",
+                fontSize: "15px",
+                cursor: "pointer",
+                marginBottom: "10px",
+              }}
+            >
               Sign Up
             </button>
-            <button onClick={() => setShowLoginPopup(false)} style={{ background: "none", border: "none", color: "#777", cursor: "pointer", fontSize: "14px" }}>
+
+            <button
+              onClick={() => setShowLoginPopup(false)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#777",
+                cursor: "pointer",
+                fontSize: "14px",
+              }}
+            >
               Cancel
             </button>
           </div>
         </div>
       )}
+
+      <Footer />
     </>
   );
 }

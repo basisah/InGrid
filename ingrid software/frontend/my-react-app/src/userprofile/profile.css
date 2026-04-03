@@ -1,102 +1,246 @@
-/* Page Background */
-.profile-page {
+.profile-shell {
   min-height: 100vh;
-  padding: 40px 20px;
   background: linear-gradient(to right, #f4f6f9, #e9f0f7);
-  font-family: Arial, sans-serif;
+  padding: 40px 20px 60px;
 }
 
-/* Main Profile Card */
-.profile-card {
-  max-width: 600px;
-  margin: 0 auto 40px auto;
+.profile-layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.profile-sidebar-panel,
+.profile-block {
   background: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  text-align: center;
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+  border: 1px solid #eef2f7;
 }
 
-.profile-card h2 {
-  margin-bottom: 20px;
-  color: #2c3e50;
+.profile-sidebar-panel {
+  padding: 24px;
+  position: sticky;
+  top: 90px;
 }
 
-.profile-info {
-  text-align: left;
-  margin-bottom: 20px;
+.profile-avatar-wrap {
+  position: relative;
+  width: 110px;
+  margin-bottom: 16px;
 }
 
-.profile-info p {
-  margin: 8px 0;
+.profile-avatar {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-avatar-fallback {
+  background: #1b5e20;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+}
+
+.profile-edit-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #fbc02d;
+  color: #111827;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+}
+
+.profile-file-input {
+  margin-bottom: 14px;
+  width: 100%;
+}
+
+.profile-name {
+  margin: 0 0 10px;
+  color: #111827;
+}
+
+.profile-verified,
+.profile-pending,
+.profile-rejected {
+  margin-left: 8px;
+}
+
+.profile-mini-stats {
+  display: flex;
+  gap: 12px;
+  margin: 12px 0;
+  font-size: 14px;
   color: #555;
 }
 
-/* Logout Button */
+.profile-location {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 18px;
+}
+
+.profile-info-card {
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+.profile-info-card h3 {
+  margin: 0 0 12px;
+  color: #111827;
+}
+
+.profile-info-card p {
+  margin: 8px 0;
+  color: #555;
+  font-size: 14px;
+}
+
 .logout-btn {
-  background-color: #27ae60;
+  width: 100%;
+  background-color: #1b5e20;
   color: white;
-  padding: 10px 20px;
+  padding: 12px 18px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: 0.2s ease;
 }
 
 .logout-btn:hover {
-  background-color: #219150;
+  background-color: #145214;
 }
 
-/* Section Styling */
-.profile-section {
-  max-width: 1000px;
-  margin: 0 auto 40px auto;
+.profile-main-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.profile-section h3 {
-  margin-bottom: 20px;
-  color: #2c3e50;
+.profile-block {
+  padding: 24px;
 }
 
-/* Listings Grid */
-.listing-grid {
+.profile-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.profile-block-header h3 {
+  margin: 0;
+  color: #111827;
+}
+
+.profile-linkish {
+  color: #1b5e20;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.profile-empty {
+  color: #777;
+}
+
+.profile-trip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-reservation-card {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: 180px 1fr;
+  gap: 16px;
+  background: #f8fafc;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.profile-reservation-card:hover,
+.profile-trip-card:hover {
+  transform: translateY(-4px);
+}
+
+.profile-reservation-card img,
+.profile-trip-card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-reservation-info,
+.profile-trip-content {
+  padding: 14px;
+}
+
+.profile-reservation-info p,
+.profile-trip-content p {
+  margin: 6px 0;
+  color: #555;
+}
+
+.profile-reservation-info span {
+  color: #777;
+  font-size: 13px;
+}
+
+.profile-trip-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
 }
 
-/* Listing Card */
-.listing-card {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.profile-trip-card {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
   cursor: pointer;
+  background: white;
+  border: 1px solid #eef2f7;
 }
 
-.listing-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+.profile-trip-price {
+  color: #1b5e20 !important;
+  font-weight: 600;
 }
 
-.listing-card h4 {
-  margin-bottom: 10px;
-  color: #34495e;
-}
-
-.listing-card p {
-  color: #27ae60;
-  font-weight: bold;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-  .profile-card {
-    padding: 20px;
+@media (max-width: 980px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
   }
 
-  .listing-card {
-    padding: 15px;
+  .profile-sidebar-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 700px) {
+  .profile-trip-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-reservation-card {
+    grid-template-columns: 1fr;
   }
 }
