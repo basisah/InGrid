@@ -1,0 +1,128 @@
+/* ===== Wrapper ===== */
+.forgot-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #0a470a, #e4cd01);
+  font-family: 'Segoe UI', sans-serif;
+  transition: 0.3s;
+}
+
+/* Dark Mode */
+.forgot-wrapper.dark {
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+}
+
+/* ===== Glass Card ===== */
+.forgot-card {
+  width: 100%;
+  max-width: 450px;
+  padding: 40px;
+  border-radius: 16px;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  color: #fff;
+  text-align: center;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+.forgot-wrapper.dark .forgot-card {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* Logo */
+.forgot-logo {
+  width: 75px;
+  margin-bottom: 15px;
+}
+
+/* Title */
+.forgot-card h2 {
+  margin-bottom: 8px;
+}
+
+/* Subtitle */
+.subtitle {
+  font-size: 14px;
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+
+/* Input */
+.forgot-card input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+}
+
+/* Button */
+.forgot-card button {
+  width: 100%;
+  padding: 14px;
+  background: #fff;
+  color: #333;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+  position: relative;
+}
+
+.forgot-card button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.forgot-card button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Spinner */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid #ccc;
+  border-top: 3px solid #333;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+/* Message */
+.message {
+  margin-top: 15px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Dark Toggle */
+.dark-toggle {
+  text-align: right;
+  font-size: 13px;
+  margin-bottom: 15px;
+}
+
+/* Animations */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+  .forgot-card {
+    padding: 25px;
+  }
+}
