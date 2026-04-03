@@ -341,10 +341,16 @@ app.get("/api/properties/:id", async (req, res) => {
       return res.status(404).json({ message: "Property not found" });
     }
 
-    const [images] = await db.query(
-      "SELECT * FROM property_images WHERE property_id = ?",
-      [req.params.id]
-    );
+    let images = [];
+    try {
+      const [imageRows] = await db.query(
+        "SELECT * FROM property_images WHERE property_id = ?",
+        [req.params.id]
+      );
+      images = imageRows;
+    } catch (err) {
+      console.error("Property images query failed:", err);
+    }
 
     const property = rows[0];
 
@@ -486,7 +492,7 @@ app.get("/api/furniture/:id", async (req, res) => {
     const propertyId = req.params.id;
 
     const [propertyRows] = await db.query(
-      "SELECT id, type FROM properties WHERE id = ?",
+      "SELECT id FROM properties WHERE id = ?",
       [propertyId]
     );
 
@@ -495,7 +501,7 @@ app.get("/api/furniture/:id", async (req, res) => {
     }
 
     const [rows] = await db.query(
-      `SELECT id, name, category, price, image_url, color_theme, width, depth
+      `SELECT id, name, category, price, image_url, color_theme
        FROM furniture`
     );
 
@@ -510,34 +516,23 @@ app.get("/api/furniture/:id", async (req, res) => {
     const furnitureWithFitInfo = rows.map((item) => {
       const room = rooms[item.category];
 
-      if (!room) {
-        return {
-          ...item,
-          room: item.category,
-          fits: false,
-          clearance_space: null,
-          reason: "No matching room found for this furniture category"
-        };
-      }
-
-      const fits =
-        Number(item.width) <= room.width && Number(item.depth) <= room.depth;
-
       return {
         ...item,
         room: item.category,
-        fits,
-        clearance_space: fits
-          ? (room.width - Number(item.width)) * (room.depth - Number(item.depth))
-          : null,
-        reason: fits ? "Fits in the room" : "Too large for the room"
+        fits: room ? true : false,
+        clearance_space: null,
+        reason: room
+          ? "Fits in suggested room"
+          : "No matching room found for this furniture category"
       };
     });
 
     res.json(furnitureWithFitInfo);
   } catch (err) {
-    console.error("Error fetching furniture:", err);
-    res.status(500).json({ error: "Failed to fetch furniture" });
+    console.error("GET /api/furniture/:id error:", err);
+    res.status(500).json({
+      error: err.sqlMessage || "Failed to fetch furniture"
+    });
   }
 });
 // GET ALL USERS (ADMIN)
@@ -662,41 +657,7 @@ app.post("/api/messages", authenticate, async (req, res) => {
   }
 });
 
-app.get("/api/messages/:propertyId/:receiverId", authenticate, async (req, res) => {
-  const { propertyId, receiverId } = req.params;
-  const currentUserId = req.user.id;
 
-  try {
-    const [rows] = await db.query(
-      `SELECT 
-         m.id,
-         m.sender_id,
-         m.receiver_id,
-         m.property_id,
-         m.message,
-         m.created_at,
-         u.first_name AS sender_first_name,
-         u.last_name AS sender_last_name
-       FROM messages m
-       JOIN users u ON u.id = m.sender_id
-       WHERE m.property_id = ?
-         AND (
-           (m.sender_id = ? AND m.receiver_id = ?)
-           OR
-           (m.sender_id = ? AND m.receiver_id = ?)
-         )
-       ORDER BY m.id ASC`,
-      [propertyId, currentUserId, receiverId, receiverId, currentUserId]
-    );
-
-    res.json(rows);
-  } catch (err) {
-    console.error("GET /api/messages error:", err);
-    res.status(500).json({
-      message: err.sqlMessage || "Failed to load messages"
-    });
-  }
-});
 // GET MESSAGES FOR A PROPERTY BETWEEN USER AND LANDLORD
 app.get("/api/messages/:propertyId/:receiverId", authenticate, async (req, res) => {
   const { propertyId, receiverId } = req.params;

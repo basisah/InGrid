@@ -34,12 +34,18 @@ export default function PropertyDetail() {
     const fetchData = async () => {
       try {
         const propertyRes = await axios.get(`/api/properties/${id}`);
-        const furnitureRes = await axios.get(`/api/furniture/${id}`);
-
         setProperty(propertyRes.data);
+      } catch (error) {
+        console.error("Failed to load property:", error);
+        return;
+      }
+
+      try {
+        const furnitureRes = await axios.get(`/api/furniture/${id}`);
         setFurniture(Array.isArray(furnitureRes.data) ? furnitureRes.data : []);
       } catch (error) {
-        console.error("Failed to load property details:", error);
+        console.error("Failed to load furniture:", error);
+        setFurniture([]);
       }
     };
 
