@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Payment from "./payment system/payment.js";
+import Payment from "./paymentsystem/payment.js";
 import Wishlist from "./userprofile/wishlist.js";
 import TripHistory from "./userprofile/triphistory.js";
 import { Toaster } from "react-hot-toast";
