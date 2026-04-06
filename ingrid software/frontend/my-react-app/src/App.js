@@ -11,11 +11,11 @@ import ForgotPassword from "./loginpages/forget.js";
 import ResetPassword from "./loginpages/reset.js";
 import Profile from "./userprofile/profile";
 import Home from "./home/home";
-import Listings from "./listingpage/listing";
-import PropertyDetail from "./listingpage/propertydetail";
-import Compare from "./listingpage/compare";
-import PostProperty from "./property/property";
-import AdminDashboard from "./adminpage/AdminDashboard";
+import Listings from "./listingpage/listing.js";
+import PropertyDetail from "./listingpage/propertydetail.js";
+import Compare from "./listingpage/compare.js";
+import PostProperty from "./property/property.js";
+import AdminDashboard from "./adminpage/AdminDashboard.js";
 import Verify from "./loginpages/verify.js";
 import ChatPage from "./listingpage/chat.js";
 import FurnitureStore from "./furniture/furniturestore.js";
@@ -30,10 +30,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Default redirect */}
         <Route path="/" element={<Navigate to="/home" />} />
 
-        {/* Public Routes */}
         <Route path="/home" element={<Home />} />
         <Route path="/furniture" element={<FurnitureStore />} />
         <Route path="/signup" element={<Signup />} />
@@ -46,9 +44,16 @@ function App() {
         <Route path="/payment" element={<Payment />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/trips" element={<TripHistory />} />
-        <Route path="/chat/:propertyId/:receiverId" element={<ChatPage />} />
 
-        {/* Protected Routes */}
+        <Route
+          path="/chat/:propertyId/:receiverId"
+          element={
+            <PrivateRoute>
+              <ChatPage />
+            </PrivateRoute>
+          }
+        />
+
         <Route
           path="/profile"
           element={
@@ -57,6 +62,7 @@ function App() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/compare"
           element={
@@ -65,6 +71,7 @@ function App() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/post-property"
           element={
@@ -73,6 +80,7 @@ function App() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/admin"
           element={
@@ -82,11 +90,9 @@ function App() {
           }
         />
 
-        {/* 404 */}
         <Route path="*" element={<p style={{ padding: "40px" }}>Page Not Found</p>} />
       </Routes>
 
-      {/* Global Toast System */}
       <Toaster
         position="top-right"
         reverseOrder={false}
