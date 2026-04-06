@@ -42,8 +42,8 @@
   padding: 12px 20px;
   border: none;
   border-radius: 8px;
-  background: #1b5e20;
-  color: white;
+  background: #facc15;
+  color: #111827;
   font-weight: 600;
   cursor: pointer;
   margin-top: 0;
@@ -181,7 +181,7 @@
   bottom: 10px;
   left: 10px;
   background:#fbc02d ;
-  color: white;
+  color: #111827;
   padding: 6px 10px;
   border-radius: 8px;
 }
@@ -250,13 +250,13 @@
 
 .view-btn {
   background:#fbc02d;
-  color: white;
+  color: #111827;
   border: none;
 }
 
 .compare-btn {
   background:#fbc02d;
-  color: white;
+  color: #111827;
   border: none;
 }
 
@@ -377,7 +377,7 @@
   padding: 10px 16px;
   border: none;
   background: #fbc02d;
-  color: white;
+  color: #111827;
   cursor: pointer;
   border-radius: 8px;
   font-weight: 500;
@@ -451,8 +451,8 @@
 /* BACK BUTTON */
 .back-btn {
   padding: 10px 18px;
-  background: #1b5e20;
-  color: white;
+  background: #facc15;
+  color: #111827;
   border: none;
   border-radius: 8px;
   font-size: 14px;
@@ -484,8 +484,8 @@
 }
 
 .book-btn {
-  background: #2d6a4f;
-  color: white;
+  background: #facc15;
+  color: #111827;
   padding: 12px 25px;
   border: none;
   border-radius: 8px;
@@ -494,7 +494,7 @@
 }
 
 .back-btn:hover {
-  background: #145214;
+  background: #f9a825;
 }
 
 /* =========================
@@ -506,43 +506,113 @@
   background: #f8fafc;
 }
 
-/* GALLERY */
-.property-gallery {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 14px;
+/* FACEBOOK-STYLE GALLERY */
+.fb-gallery {
   margin-bottom: 28px;
 }
 
-.gallery-main img {
+.fb-gallery-main {
+  position: relative;
   width: 100%;
-  height: 440px;
+  height: 560px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #e5e7eb;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.08);
+}
+
+.fb-gallery-main img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 20px;
   display: block;
 }
 
-.gallery-side {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+.gallery-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(17, 24, 39, 0.72);
+  color: white;
+  font-size: 30px;
+  cursor: pointer;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s ease;
 }
 
-.gallery-side img {
+.gallery-arrow:hover {
+  background: rgba(17, 24, 39, 0.9);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.gallery-arrow.left {
+  left: 18px;
+}
+
+.gallery-arrow.right {
+  right: 18px;
+}
+
+.gallery-counter {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  background: rgba(17, 24, 39, 0.75);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 999px;
+}
+
+.fb-gallery-thumbs {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-top: 14px;
+  scrollbar-width: none;
+}
+
+.fb-gallery-thumbs::-webkit-scrollbar {
+  display: none;
+}
+
+.fb-thumb {
+  flex: 0 0 110px;
+  height: 78px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  overflow: hidden;
+  padding: 0;
+  background: white;
+  cursor: pointer;
+  transition: 0.2s ease;
+  opacity: 0.78;
+}
+
+.fb-thumb img {
   width: 100%;
-  height: 213px;
+  height: 100%;
   object-fit: cover;
-  border-radius: 16px;
   display: block;
 }
 
-.property-gallery img {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.fb-thumb:hover {
+  opacity: 1;
+  transform: translateY(-2px);
 }
 
-.property-gallery img:hover {
-  transform: scale(1.02);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+.fb-thumb.active {
+  border-color: #fbc02d;
+  opacity: 1;
+  box-shadow: 0 10px 20px rgba(251, 192, 45, 0.25);
 }
 
 /* HEADER */
@@ -591,7 +661,7 @@
 }
 
 .property-price-box h2 {
-  color:#4f46e5;
+  color: #4f46e5;
   font-size: 32px;
   margin: 0;
 }
@@ -717,8 +787,8 @@
 .reserve-btn {
   width: 100%;
   padding: 14px;
-  background: #1b5e20;
-  color: white;
+  background: #facc15;
+  color: #111827;
   border: none;
   border-radius: 12px;
   font-size: 16px;
@@ -728,7 +798,7 @@
 }
 
 .reserve-btn:hover {
-  background: #12461a;
+  background: #f9a825;
 }
 
 .booking-note {
@@ -752,7 +822,7 @@
 
 .contact-primary-btn {
   width: 100%;
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  background: rgba(17, 24, 39, 0.88);
   color: white;
   padding: 13px;
   border-radius: 12px;
@@ -765,7 +835,7 @@
 
 .contact-primary-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 8px 20px rgba(17, 24, 39, 0.3);
 }
 
 .contact-save-btn {
@@ -797,6 +867,7 @@
   font-weight: bold;
   margin-top: 10px;
 }
+
 .booking-date-field input[type="date"]::-webkit-calendar-picker-indicator {
   display: block;
   cursor: pointer;
@@ -887,12 +958,20 @@
 }
 
 @media (max-width: 900px) {
-  .property-gallery {
-    grid-template-columns: 1fr;
+  .fb-gallery-main {
+    height: 380px;
+    border-radius: 18px;
   }
 
-  .gallery-side {
-    grid-template-columns: 1fr 1fr;
+  .fb-thumb {
+    flex: 0 0 92px;
+    height: 68px;
+  }
+
+  .gallery-arrow {
+    width: 42px;
+    height: 42px;
+    font-size: 26px;
   }
 
   .property-header {
@@ -910,16 +989,19 @@
     padding: 20px;
   }
 
-  .gallery-main img {
-    height: 260px;
+  .fb-gallery-main {
+    height: 280px;
   }
 
-  .gallery-side img {
-    height: 140px;
+  .gallery-arrow {
+    width: 38px;
+    height: 38px;
+    font-size: 22px;
   }
 
-  .gallery-side {
-    grid-template-columns: 1fr 1fr;
+  .gallery-counter {
+    font-size: 12px;
+    padding: 6px 10px;
   }
 
   .property-header h1 {

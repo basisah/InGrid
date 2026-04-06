@@ -182,7 +182,10 @@ export default function Listings() {
             {properties.map((property) => (
               <div className="home-property-card" key={property.id}>
                 <div className="card-image" style={{ position: "relative" }}>
-                  <img src={property.main_image} alt={property.title} />
+                  <img
+                    src={property.display_image || property.main_image || "https://via.placeholder.com/600x400?text=No+Image"}
+                    alt={property.title}
+                  />
 
                   <button
                     className={`save-icon-btn ${
