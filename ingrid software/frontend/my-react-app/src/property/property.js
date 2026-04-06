@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../home/navbar";
 import ImageUploader from "./ImageUploader";
 import PreviewListing from "./PreviewListing";
@@ -30,30 +31,110 @@ const addressSuggestions = [
   "780 Idylwyld Drive"
 ];
 
+const emptyProperty = {
+  title: "",
+  address: "",
+  city: "",
+  province: "",
+  type: "rental",
+  price: "",
+  bedrooms: "",
+  bathrooms: "",
+  size: "",
+  description: ""
+};
+
 export default function PostProperty() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("edit");
+
   const [images, setImages] = useState([]);
   const [preview, setPreview] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingEdit, setLoadingEdit] = useState(false);
 
-  const [property, setProperty] = useState({
-    title: "",
-    address: "",
-    city: "",
-    province: "",
-    type: "rental",
-    price: "",
-    bedrooms: "",
-    bathrooms: "",
-    size: "",
-    description: ""
-  });
+  const [property, setProperty] = useState(emptyProperty);
+
+  const isEditMode = Boolean(editId);
 
   useEffect(() => {
+    if (isEditMode) return;
+
     const savedDraft = localStorage.getItem("propertyDraft");
     if (savedDraft) {
-      setProperty(JSON.parse(savedDraft));
+      try {
+        setProperty(JSON.parse(savedDraft));
+      } catch (err) {
+        console.error("Failed to parse saved draft:", err);
+      }
     }
-  }, []);
+  }, [isEditMode]);
+
+  useEffect(() => {
+    const fetchListingForEdit = async () => {
+      if (!isEditMode) return;
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login first.");
+        navigate("/login");
+        return;
+      }
+
+      try {
+        setLoadingEdit(true);
+
+        const res = await fetch(`/api/properties/${editId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to load listing.");
+        }
+
+        const fullAddress = data.address || "";
+        const addressParts = fullAddress.split(",").map((part) => part.trim());
+
+        const street = addressParts[0] || "";
+        const city = addressParts[1] || "";
+        const province = addressParts[2] || "";
+
+        setProperty({
+          title: data.title || "",
+          address: street,
+          city,
+          province,
+          type: data.type || "rental",
+          price: data.price || "",
+          bedrooms: data.bedrooms || "",
+          bathrooms: data.bathrooms || "",
+          size: data.size || "",
+          description: data.description || ""
+        });
+
+        const incomingImages =
+          Array.isArray(data.images) && data.images.length > 0
+            ? data.images.map((img) => img.image_url).filter(Boolean)
+            : data.main_image
+              ? [data.main_image]
+              : [];
+
+        setImages(incomingImages.map((img) => ({ preview: img })));
+      } catch (error) {
+        console.error("Edit load failed:", error);
+        alert(error.message || "Failed to load listing for editing.");
+      } finally {
+        setLoadingEdit(false);
+      }
+    };
+
+    fetchListingForEdit();
+  }, [editId, isEditMode, navigate]);
 
   const handleChange = (e) => {
     setProperty((prev) => ({
@@ -100,27 +181,51 @@ export default function PostProperty() {
   }, [property]);
 
   const saveDraft = () => {
+    if (isEditMode) {
+      alert("Draft saving is only available when creating a new listing.");
+      return;
+    }
+
     localStorage.setItem("propertyDraft", JSON.stringify(property));
     alert("Draft saved successfully!");
   };
 
   const clearDraft = () => {
+    if (isEditMode) {
+      setProperty(emptyProperty);
+      setImages([]);
+      return;
+    }
+
     localStorage.removeItem("propertyDraft");
-    setProperty({
-      title: "",
-      address: "",
-      city: "",
-      province: "",
-      type: "rental",
-      price: "",
-      bedrooms: "",
-      bathrooms: "",
-      size: "",
-      description: ""
-    });
+    setProperty(emptyProperty);
     setImages([]);
   };
+  const geocodeAddress = async (address) => {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`,
+      {
+        headers: {
+          Accept: "application/json"
+        }
+      }
+    );
 
+    if (!response.ok) {
+      throw new Error("Failed to get location coordinates.");
+    }
+
+    const data = await response.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new Error("Could not find that address on the map.");
+    }
+
+    return {
+      latitude: Number(data[0].lat),
+      longitude: Number(data[0].lon)
+    };
+  };
   const submitProperty = async () => {
     if (!property.title || !property.price || !property.address) {
       alert("Please fill in title, price, and address.");
@@ -136,33 +241,72 @@ export default function PostProperty() {
     try {
       setSubmitting(true);
 
-      const response = await fetch("/api/properties", {
-        method: "POST",
+      const imageUrls = images.map((img) => img.preview || img).filter(Boolean);
+      const finalAddress = fullAddress || property.address;
+
+      const coords = await geocodeAddress(finalAddress);
+
+      const payload = {
+        title: property.title,
+        address: finalAddress,
+        type: property.type,
+        price: property.price,
+        bedrooms: property.bedrooms,
+        bathrooms: property.bathrooms,
+        size: property.size,
+        description: property.description,
+        main_image: imageUrls[0] || "",
+        images: imageUrls,
+        latitude: coords.latitude,
+        longitude: coords.longitude
+      };
+
+      const url = isEditMode ? `/api/properties/${editId}` : "/api/properties";
+      const method = isEditMode ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          ...property,
-          latitude: null,
-          longitude: null
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to post property");
+        throw new Error(data.message || `Failed to ${isEditMode ? "update" : "post"} property`);
       }
 
-      alert(data.message || "Property posted successfully!");
-      localStorage.removeItem("propertyDraft");
+      alert(
+        data.message ||
+          (isEditMode ? "Listing updated successfully!" : "Property posted successfully!")
+      );
+
+      if (!isEditMode) {
+        localStorage.removeItem("propertyDraft");
+        setProperty(emptyProperty);
+        setImages([]);
+      }
+
+      navigate("/profile");
     } catch (error) {
+      console.error("Submit property error:", error);
       alert(error.message || "Something went wrong.");
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (loadingEdit) {
+    return (
+      <>
+        <Navbar />
+        <div style={{ padding: "40px" }}>Loading listing for editing...</div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -171,8 +315,12 @@ export default function PostProperty() {
       <div className="post-page">
         <div className="post-hero">
           <div>
-            <p className="post-eyebrow">Landlord Dashboard</p>
-            <h1>Create a property listing</h1>
+            <p className="post-eyebrow">
+              {isEditMode ? "Edit Listing" : "Landlord Dashboard"}
+            </p>
+            <h1>
+              {isEditMode ? "Update your property listing" : "Create a property listing"}
+            </h1>
             <p className="post-subtext">
               Add photos, location, details, and preview everything before publishing.
             </p>
@@ -374,9 +522,11 @@ export default function PostProperty() {
             </div>
 
             <div className="action-row">
-              <button className="ghost-btn" onClick={saveDraft}>
-                Save Draft
-              </button>
+              {!isEditMode && (
+                <button className="ghost-btn" onClick={saveDraft}>
+                  Save Draft
+                </button>
+              )}
 
               <button
                 className="outline-btn"
@@ -386,7 +536,7 @@ export default function PostProperty() {
               </button>
 
               <button className="clear-btn" onClick={clearDraft}>
-                Clear Form
+                {isEditMode ? "Clear Form" : "Clear Form"}
               </button>
 
               <button
@@ -394,7 +544,13 @@ export default function PostProperty() {
                 onClick={submitProperty}
                 disabled={submitting}
               >
-                {submitting ? "Posting..." : "Post Listing"}
+                {submitting
+                  ? isEditMode
+                    ? "Updating..."
+                    : "Posting..."
+                  : isEditMode
+                    ? "Update Listing"
+                    : "Post Listing"}
               </button>
             </div>
           </div>
@@ -456,4 +612,4 @@ export default function PostProperty() {
       </div>
     </>
   );
-} 
+}

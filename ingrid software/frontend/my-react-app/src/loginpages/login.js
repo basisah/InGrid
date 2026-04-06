@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import "./login.css";
-import background from "../assets/background.png";
-import logo from "../assets/logo.png";
+import background from "../assets/background2.jpg";
+import logo from "../assets/logoV2.png";
 
 function Login() {
   const [email, setEmail] = useState("");

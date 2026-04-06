@@ -15,7 +15,10 @@
       "default",
       {
         "ignore": [
-          "backdrop-filter"
+          "backdrop-filter",
+          "min-height: auto",
+          "scrollbar-width",
+          "scrollbar-width: none"
         ]
       }
     ]
