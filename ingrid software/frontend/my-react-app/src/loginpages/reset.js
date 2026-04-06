@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import "./reset.css";
-import logo from "../assets/logo.png";
+import logo from "../assets/logoV2.png";
 
 function ResetPassword() {
   const { token } = useParams();

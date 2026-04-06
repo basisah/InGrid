@@ -4,7 +4,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #0a470a, #e4cd01);
+  background: rgba(17, 24, 39, 0.88); /* Ingrid grey */;
   font-family: 'Segoe UI', sans-serif;
   transition: 0.3s;
 }

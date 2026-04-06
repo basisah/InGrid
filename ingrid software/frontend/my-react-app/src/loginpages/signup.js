@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import "./signup.css";
-import logo from "../assets/logo.png";
+import logo from "../assets/logoV2.png";
 
 function Signup() {
   const navigate = useNavigate();

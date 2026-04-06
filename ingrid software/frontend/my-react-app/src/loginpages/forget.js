@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { toast } from "react-hot-toast";
 import "./forget.css";
-import logo from "../assets/logo.png";
+import logo from "../assets/logoV2.png";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
