@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../home/navbar";
@@ -20,6 +20,14 @@ export default function PropertyDetail() {
   const [bookingMessage, setBookingMessage] = useState("");
   const [saved, setSaved] = useState(false);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  const token = localStorage.getItem("token");
+
+  const isShortTerm = property?.type === "short-term";
+  const isRental = property?.type === "rental";
+  const isBuy = property?.type === "buy";
 
   const calculateNights = () => {
     if (!checkIn || !checkOut) return 0;
@@ -28,35 +36,86 @@ export default function PropertyDetail() {
   };
 
   const nights = calculateNights();
-  const total = property ? nights * Number(property.price) : 0;
+  const total = property && isShortTerm ? nights * Number(property.price) : 0;
+
+  const images = useMemo(() => {
+    if (!property) return [];
+
+    const galleryImages =
+      property.images && property.images.length > 0
+        ? property.images
+        : property.main_image
+        ? [{ image_url: property.main_image }]
+        : [];
+
+    return galleryImages.filter((img) => img?.image_url);
+  }, [property]);
+
+  const priceLabel = useMemo(() => {
+    if (!property) return "";
+    if (property.type === "short-term") return "per night";
+    if (property.type === "rental") return "per month";
+    return "for sale";
+  }, [property]);
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const propertyRes = await axios.get(`/api/properties/${id}`);
-        setProperty(propertyRes.data);
-      } catch (error) {
-        console.error("Failed to load property:", error);
-        return;
-      }
+      setLoading(true);
 
       try {
-        const furnitureRes = await axios.get(`/api/furniture/${id}`);
-        setFurniture(Array.isArray(furnitureRes.data) ? furnitureRes.data : []);
+        const propertyRes = await axios.get(`/api/properties/${id}`);
+        const propertyData = propertyRes.data;
+        setProperty(propertyData);
+        setActiveImageIndex(0);
+
+        try {
+          const furnitureRes = await axios.get(`/api/furniture/${id}`);
+          setFurniture(Array.isArray(furnitureRes.data) ? furnitureRes.data : []);
+        } catch (error) {
+          console.error("Failed to load furniture:", error);
+          setFurniture([]);
+        }
+
+        if (token) {
+          try {
+            const wishlistRes = await axios.get("/api/wishlist", {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            const savedIds = Array.isArray(wishlistRes.data) ? wishlistRes.data : [];
+            setSaved(savedIds.includes(Number(id)));
+          } catch (error) {
+            console.error("Failed to check wishlist status:", error);
+          }
+        }
       } catch (error) {
-        console.error("Failed to load furniture:", error);
-        setFurniture([]);
+        console.error("Failed to load property:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
-  }, [id]);
+  }, [id, token]);
+
+  const goPrevImage = () => {
+    if (images.length === 0) return;
+    setActiveImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const goNextImage = () => {
+    if (images.length === 0) return;
+    setActiveImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
 
   const handleReserve = async () => {
-    const token = localStorage.getItem("token");
-
     if (!token) {
       setShowLoginPopup(true);
+      return;
+    }
+
+    if (!isShortTerm) {
+      setBookingMessage("This listing cannot be booked online. Please message the agent.");
       return;
     }
 
@@ -65,11 +124,18 @@ export default function PropertyDetail() {
       return;
     }
 
+    if (new Date(checkOut) <= new Date(checkIn)) {
+      setBookingMessage("Check-out must be after check-in.");
+      return;
+    }
+
+    setBookingMessage("");
+
     navigate("/payment", {
       state: {
         property_id: id,
         property_title: property.title,
-        property_image: property.main_image,
+        property_image: images[activeImageIndex]?.image_url || property.main_image,
         check_in: checkIn,
         check_out: checkOut,
         guests,
@@ -81,8 +147,6 @@ export default function PropertyDetail() {
   };
 
   const handleSave = async () => {
-    const token = localStorage.getItem("token");
-
     if (!token) {
       navigate("/login");
       return;
@@ -107,12 +171,46 @@ export default function PropertyDetail() {
     }
   };
 
-  if (!property) return <div style={{ padding: "40px" }}>Loading...</div>;
+  const handleMessageAgent = () => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
 
-  const images =
-    property.images && property.images.length > 0
-      ? property.images
-      : [{ image_url: property.main_image }];
+    const receiverId = property?.landlord_id || property?.seller?.id;
+
+    if (!receiverId) {
+      alert("No landlord found for this listing.");
+      return;
+    }
+
+    navigate(`/chat/${property.id}/${receiverId}`);
+  };
+  
+  const mapQuery =
+    property?.latitude != null && property?.longitude != null
+      ? `${property.latitude},${property.longitude}`
+      : property?.address || "Saskatoon, Saskatchewan";
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div style={{ padding: "40px" }}>Loading property...</div>
+        <Footer />
+      </>
+    );
+  }
+
+  if (!property) {
+    return (
+      <>
+        <Navbar />
+        <div style={{ padding: "40px" }}>Property not found.</div>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
@@ -123,23 +221,54 @@ export default function PropertyDetail() {
           ← Back to Listings
         </button>
 
-        <div className="property-gallery">
-          <div className="gallery-main">
+        <div className="fb-gallery">
+          <div className="fb-gallery-main">
             <img
-              src={images[0]?.image_url || property.main_image}
+              src={
+                images[activeImageIndex]?.image_url ||
+                "https://via.placeholder.com/1200x700?text=No+Image"
+              }
               alt={property.title}
             />
+
+            {images.length > 1 && (
+              <>
+                <button
+                  className="gallery-arrow left"
+                  onClick={goPrevImage}
+                  type="button"
+                >
+                  ‹
+                </button>
+                <button
+                  className="gallery-arrow right"
+                  onClick={goNextImage}
+                  type="button"
+                >
+                  ›
+                </button>
+              </>
+            )}
+
+            <div className="gallery-counter">
+              {images.length > 0 ? `${activeImageIndex + 1} / ${images.length}` : "0 / 0"}
+            </div>
           </div>
 
-          <div className="gallery-side">
-            {images.slice(1, 5).map((img, index) => (
-              <img
-                key={img.id || index}
-                src={img.image_url}
-                alt={`${property.title} ${index + 2}`}
-              />
-            ))}
-          </div>
+          {images.length > 1 && (
+            <div className="fb-gallery-thumbs">
+              {images.map((img, index) => (
+                <button
+                  key={img.id || index}
+                  className={`fb-thumb ${activeImageIndex === index ? "active" : ""}`}
+                  onClick={() => setActiveImageIndex(index)}
+                  type="button"
+                >
+                  <img src={img.image_url} alt={`${property.title} ${index + 1}`} />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="property-header">
@@ -151,12 +280,13 @@ export default function PropertyDetail() {
               <span>{property.bedrooms} Beds</span>
               <span>{property.bathrooms} Baths</span>
               <span>{property.size} sqft</span>
+              <span style={{ textTransform: "capitalize" }}>{property.type}</span>
             </div>
           </div>
 
           <div className="property-price-box">
             <h2>${property.price}</h2>
-            <p>per night</p>
+            <p>{priceLabel}</p>
           </div>
         </div>
 
@@ -164,7 +294,9 @@ export default function PropertyDetail() {
           <div className="property-main-content">
             <section className="property-section-card">
               <h3>Description</h3>
-              <p className="property-description">{property.description}</p>
+              <p className="property-description">
+                {property.description || "No description available yet."}
+              </p>
             </section>
 
             <section className="property-section-card">
@@ -212,7 +344,7 @@ export default function PropertyDetail() {
               <div className="map-wrapper">
                 <iframe
                   title="map"
-                  src={`https://www.google.com/maps?q=${property.latitude},${property.longitude}&z=15&output=embed`}
+                  src={`https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&z=15&output=embed`}
                 ></iframe>
               </div>
             </section>
@@ -248,72 +380,90 @@ export default function PropertyDetail() {
             <div className="booking-card">
               <div className="booking-card-inner">
                 <h2>
-                  ${property.price} <span>/ night</span>
+                  ${property.price}{" "}
+                  <span>
+                    {isShortTerm ? "/ night" : isRental ? "/ month" : "/ sale"}
+                  </span>
                 </h2>
 
-                <div className="booking-inputs">
-                  <div className="booking-dates">
-                    <div className="booking-date-field">
-                      <label>CHECK-IN</label>
-                      <input
-                        type="date"
-                        value={checkIn}
-                        onChange={(e) => setCheckIn(e.target.value)}
-                      />
+                {isShortTerm ? (
+                  <>
+                    <div className="booking-inputs">
+                      <div className="booking-dates">
+                        <div className="booking-date-field">
+                          <label>CHECK-IN</label>
+                          <input
+                            type="date"
+                            value={checkIn}
+                            min={new Date().toISOString().split("T")[0]}
+                            onChange={(e) => setCheckIn(e.target.value)}
+                          />
+                        </div>
+
+                        <div className="booking-date-field">
+                          <label>CHECK-OUT</label>
+                          <input
+                            type="date"
+                            value={checkOut}
+                            min={checkIn || new Date().toISOString().split("T")[0]}
+                            onChange={(e) => setCheckOut(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="booking-guests">
+                        <label>GUESTS</label>
+                        <select
+                          value={guests}
+                          onChange={(e) => setGuests(Number(e.target.value))}
+                        >
+                          {[1, 2, 3, 4, 5, 6].map((n) => (
+                            <option key={n} value={n}>
+                              {n} guest{n > 1 ? "s" : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
-                    <div className="booking-date-field">
-                      <label>CHECK-OUT</label>
-                      <input
-                        type="date"
-                        value={checkOut}
-                        min={checkIn}
-                        onChange={(e) => setCheckOut(e.target.value)}
-                      />
-                    </div>
-                  </div>
+                    {nights > 0 && (
+                      <p className="booking-total">
+                        ${property.price} × {nights} nights ={" "}
+                        <strong>${total.toFixed(2)}</strong>
+                      </p>
+                    )}
 
-                  <div className="booking-guests">
-                    <label>GUESTS</label>
-                    <select
-                      value={guests}
-                      onChange={(e) => setGuests(Number(e.target.value))}
-                    >
-                      {[1, 2, 3, 4, 5, 6].map((n) => (
-                        <option key={n} value={n}>
-                          {n} guest{n > 1 ? "s" : ""}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                    <button className="reserve-btn" onClick={handleReserve}>
+                      Reserve
+                    </button>
 
-                {nights > 0 && (
-                  <p className="booking-total">
-                    ${property.price} × {nights} nights ={" "}
-                    <strong>${total.toFixed(2)}</strong>
-                  </p>
+                    <p className="booking-note">You won't be charged yet</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="booking-note" style={{ marginBottom: "14px" }}>
+                      {isBuy
+                        ? "This property is for sale. Message the agent to continue."
+                        : "This rental listing cannot be paid online. Message the agent to continue."}
+                    </p>
+
+                    <button className="contact-primary-btn" onClick={handleMessageAgent}>
+                      Chat with Agent
+                    </button>
+                  </>
                 )}
-
-                <button className="reserve-btn" onClick={handleReserve}>
-                  Reserve
-                </button>
-
-                <p className="booking-note">You won't be charged yet</p>
 
                 <hr className="sidebar-divider" />
 
                 <div className="contact-box">
                   <h3>Contact Agent</h3>
                   <p style={{ marginBottom: "12px", color: "#6b7280" }}>
-                    {property.seller?.name}
+                    {property.seller?.name || "Listing Owner"}
                   </p>
 
                   <button
                     className="contact-primary-btn"
-                    onClick={() =>
-                      navigate(`/chat/${property.id}/${property.landlord_id || 1}`)
-                    }
+                    onClick={handleMessageAgent}
                   >
                     Message Agent
                   </button>
@@ -324,13 +474,7 @@ export default function PropertyDetail() {
                 </div>
 
                 {bookingMessage && (
-                  <p
-                    className={
-                      bookingMessage.includes("successful")
-                        ? "booking-message-success"
-                        : "booking-message-error"
-                    }
-                  >
+                  <p className="booking-message-error">
                     {bookingMessage}
                   </p>
                 )}
@@ -364,9 +508,9 @@ export default function PropertyDetail() {
               width: "340px",
             }}
           >
-            <h3 style={{ marginBottom: "12px" }}>Sign in to book</h3>
+            <h3 style={{ marginBottom: "12px" }}>Sign in to continue</h3>
             <p style={{ color: "#555", marginBottom: "24px" }}>
-              You need to be logged in to make a reservation.
+              You need to be logged in to book or message the agent.
             </p>
 
             <button
