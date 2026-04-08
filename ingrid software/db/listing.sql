@@ -1,7 +1,7 @@
 CREATE TABLE property_images (
     id INT PRIMARY KEY AUTO_INCREMENT,
     property_id INT,
-    image_url VARCHAR(500),
+    image_url LONGTEXT,
     FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
 );
 

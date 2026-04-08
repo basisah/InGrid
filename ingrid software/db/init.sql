@@ -54,7 +54,7 @@ CREATE TABLE properties (
   bathrooms INT,
   size INT,
   description TEXT,
-  main_image VARCHAR(500),
+  main_image LONGTEXT,
   latitude DECIMAL(10,6),
   longitude DECIMAL(10,6),
   is_verified BOOLEAN DEFAULT FALSE,

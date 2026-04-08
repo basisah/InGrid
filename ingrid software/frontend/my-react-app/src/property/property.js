@@ -322,15 +322,7 @@ export default function PostProperty() {
         body: JSON.stringify(payload)
       });
 
-      const text = await response.json();
-      let data = {};
-
-      try {
-        data = text ? JSON.parse(text) : {};
-      } catch {
-        data = { message: text };
-      }
-
+      const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || `Failed to ${isEditMode ? "update" : "post"} property`);
