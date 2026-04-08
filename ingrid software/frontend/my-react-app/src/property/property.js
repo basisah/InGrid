@@ -41,7 +41,8 @@ const emptyProperty = {
   bedrooms: "",
   bathrooms: "",
   size: "",
-  description: ""
+  description: "",
+  rooms: []
 };
 
 export default function PostProperty() {
@@ -114,7 +115,8 @@ export default function PostProperty() {
           bedrooms: data.bedrooms || "",
           bathrooms: data.bathrooms || "",
           size: data.size || "",
-          description: data.description || ""
+          description: data.description || "",
+          rooms: Array.isArray(data.rooms) ? data.rooms : []
         });
 
         const incomingImages =
@@ -137,11 +139,58 @@ export default function PostProperty() {
   }, [editId, isEditMode, navigate]);
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setProperty((prev) => {
+      const updated = {
+        ...prev,
+        [name]: value
+      };
+
+      if (name === "type" && value !== "buy") {
+        updated.rooms = [];
+      }
+
+      return updated;
+    });
+  };
+
+  const addRoom = () => {
     setProperty((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      rooms: [
+        ...prev.rooms,
+        {
+          name: "",
+          type: "",
+          width: "",
+          depth: ""
+        }
+      ]
     }));
   };
+
+  const updateRoom = (index, field, value) => {
+    setProperty((prev) => {
+      const updatedRooms = [...prev.rooms];
+      updatedRooms[index] = {
+        ...updatedRooms[index],
+        [field]: value
+      };
+      return {
+        ...prev,
+        rooms: updatedRooms
+      };
+    });
+  };
+
+  const removeRoom = (index) => {
+    setProperty((prev) => ({
+      ...prev,
+      rooms: prev.rooms.filter((_, i) => i !== index)
+    }));
+  };
+
 
   const applyQuickLocation = (city) => {
     setProperty((prev) => ({
@@ -281,7 +330,7 @@ export default function PostProperty() {
 
       alert(
         data.message ||
-          (isEditMode ? "Listing updated successfully!" : "Property posted successfully!")
+        (isEditMode ? "Listing updated successfully!" : "Property posted successfully!")
       );
 
       if (!isEditMode) {
@@ -423,6 +472,78 @@ export default function PostProperty() {
                   />
                 </div>
               </div>
+
+              {property.type === "buy" && (
+                <div className="section-card">
+                  <div className="section-header">
+                    <h2>Room Dimensions</h2>
+                    <span>Add rooms so furniture can be matched correctly</span>
+                  </div>
+
+                  {property.rooms.length === 0 && (
+                    <p style={{ marginBottom: "10px" }}>
+                      No rooms added yet. Click "Add Room" to start.
+                    </p>
+                  )}
+
+                  {property.rooms.map((room, index) => (
+                    <div key={index} className="form-grid" style={{ marginBottom: "15px" }}>
+
+                      <div className="form-group">
+                        <label>Room Name</label>
+                        <input
+                          value={room.name}
+                          onChange={(e) => updateRoom(index, "name", e.target.value)}
+                          placeholder="Bedroom 1"
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Room Type</label>
+                        <input
+                          value={room.type}
+                          onChange={(e) => updateRoom(index, "type", e.target.value)}
+                          placeholder="Bedroom / Living Room"
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Width (ft)</label>
+                        <input
+                          type="number"
+                          value={room.width}
+                          onChange={(e) => updateRoom(index, "width", e.target.value)}
+                          placeholder="12"
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Depth (ft)</label>
+                        <input
+                          type="number"
+                          value={room.depth}
+                          onChange={(e) => updateRoom(index, "depth", e.target.value)}
+                          placeholder="10"
+                        />
+                      </div>
+
+                      <div className="form-group full">
+                        <button
+                          type="button"
+                          className="clear-btn"
+                          onClick={() => removeRoom(index)}
+                        >
+                          Remove Room
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button type="button" className="outline-btn" onClick={addRoom}>
+                    + Add Room
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="section-card">
