@@ -109,14 +109,14 @@ app.post("/api/signup", async (req, res) => {
 
     // Send verification email
     const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: GMAIL_USER,
-          pass: GMAIL_PASS
-        },
-        tls: {
-          rejectUnauthorized: false
-        }
+      service: "gmail",
+      auth: {
+        user: GMAIL_USER,
+        pass: GMAIL_PASS
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
     });
     await transporter.sendMail({
       from: `Ingrid <${GMAIL_USER}>`,
@@ -411,6 +411,11 @@ app.get("/api/properties/:id", async (req, res) => {
       [req.params.id]
     );
 
+    const [roomRows] = await db.query(
+      "SELECT id, name, type, size_category AS sizeCategory FROM property_rooms WHERE property_id = ? ORDER BY id ASC",
+      [req.params.id]
+    );
+
     const property = rows[0];
     const gallery =
       imageRows.length > 0
@@ -422,6 +427,7 @@ app.get("/api/properties/:id", async (req, res) => {
     res.json({
       ...property,
       images: gallery,
+      rooms: roomRows,
       seller: {
         id: property.seller_id,
         name: `${property.first_name || ""} ${property.last_name || ""}`.trim() || "Agent",
@@ -452,6 +458,7 @@ app.put("/api/properties/:id", authenticate, async (req, res) => {
       description,
       main_image,
       images = [],
+      rooms = [],
       latitude = null,
       longitude = null
     } = req.body;
@@ -498,6 +505,7 @@ app.put("/api/properties/:id", authenticate, async (req, res) => {
     );
 
     await db.query("DELETE FROM property_images WHERE property_id = ?", [propertyId]);
+    await db.query("DELETE FROM property_rooms WHERE property_id = ?", [propertyId]);
 
     if (Array.isArray(images) && images.length > 0) {
       const validImages = images.filter((img) => img && String(img).trim() !== "");
@@ -506,6 +514,31 @@ app.put("/api/properties/:id", authenticate, async (req, res) => {
         await db.query(
           "INSERT INTO property_images (property_id, image_url) VALUES ?",
           [values]
+        );
+      }
+    }
+
+    if (type === "buy" && Array.isArray(rooms) && rooms.length > 0) {
+      const validRooms = rooms.filter(
+        (room) =>
+          room &&
+          String(room.name || "").trim() !== "" &&
+          String(room.type || "").trim() !== ""
+      );
+
+      if (validRooms.length > 0) {
+        const roomValues = validRooms.map((room) => [
+          propertyId,
+          room.name,
+          room.type,
+          ["small", "medium", "large"].includes(room.sizeCategory)
+            ? room.sizeCategory
+            : "medium"
+        ]);
+
+        await db.query(
+          "INSERT INTO property_rooms (property_id, name, type, size_category) VALUES ?",
+          [roomValues]
         );
       }
     }
@@ -760,6 +793,7 @@ app.post("/api/properties", authenticate, async (req, res) => {
       description,
       main_image,
       images = [],
+      rooms = [],
       latitude = null,
       longitude = null
     } = req.body;
@@ -823,15 +857,40 @@ app.post("/api/properties", authenticate, async (req, res) => {
       }
     }
 
+    if (type === "buy" && Array.isArray(rooms) && rooms.length > 0) {
+      const validRooms = rooms.filter(
+        (room) =>
+          room &&
+          String(room.name || "").trim() !== "" &&
+          String(room.type || "").trim() !== ""
+      );
+
+      if (validRooms.length > 0) {
+        const roomValues = validRooms.map((room) => [
+          propertyId,
+          room.name,
+          room.type,
+          ["small", "medium", "large"].includes(room.sizeCategory)
+            ? room.sizeCategory
+            : "medium"
+        ]);
+
+        await db.query(
+          "INSERT INTO property_rooms (property_id, name, type, size_category) VALUES ?",
+          [roomValues]
+        );
+      }
+    }
+
     res.status(201).json({
       message: "Property posted successfully and awaiting admin approval.",
       propertyId
     });
   } catch (err) {
-      console.error("POST /api/properties error:", err);
-      res.status(500).json({
-        message: err.sqlMessage || err.message || "Failed to post property"
-      });
+    console.error("POST /api/properties error:", err);
+    res.status(500).json({
+      message: err.sqlMessage || err.message || "Failed to post property"
+    });
   }
 });
 

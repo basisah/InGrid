@@ -163,8 +163,7 @@ export default function PostProperty() {
         {
           name: "",
           type: "",
-          width: "",
-          depth: ""
+          sizeCategory: "medium"
         }
       ]
     }));
@@ -304,6 +303,7 @@ export default function PostProperty() {
         bathrooms: property.bathrooms,
         size: property.size,
         description: property.description,
+        rooms: property.rooms,
         main_image: imageUrls[0] || "",
         images: imageUrls,
         latitude: coords.latitude,
@@ -322,7 +322,15 @@ export default function PostProperty() {
         body: JSON.stringify(payload)
       });
 
-      const data = await response.json();
+      const text = await response.json();
+      let data = {};
+
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = { message: text };
+      }
+
 
       if (!response.ok) {
         throw new Error(data.message || `Failed to ${isEditMode ? "update" : "post"} property`);
@@ -488,7 +496,6 @@ export default function PostProperty() {
 
                   {property.rooms.map((room, index) => (
                     <div key={index} className="form-grid" style={{ marginBottom: "15px" }}>
-
                       <div className="form-group">
                         <label>Room Name</label>
                         <input
@@ -503,28 +510,20 @@ export default function PostProperty() {
                         <input
                           value={room.type}
                           onChange={(e) => updateRoom(index, "type", e.target.value)}
-                          placeholder="Bedroom / Living Room"
+                          placeholder="Bedroom / Living Room / Dining Room"
                         />
                       </div>
 
                       <div className="form-group">
-                        <label>Width (ft)</label>
-                        <input
-                          type="number"
-                          value={room.width}
-                          onChange={(e) => updateRoom(index, "width", e.target.value)}
-                          placeholder="12"
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label>Depth (ft)</label>
-                        <input
-                          type="number"
-                          value={room.depth}
-                          onChange={(e) => updateRoom(index, "depth", e.target.value)}
-                          placeholder="10"
-                        />
+                        <label>Size Category</label>
+                        <select
+                          value={room.sizeCategory || "medium"}
+                          onChange={(e) => updateRoom(index, "sizeCategory", e.target.value)}
+                        >
+                          <option value="small">Small</option>
+                          <option value="medium">Medium</option>
+                          <option value="large">Large</option>
+                        </select>
                       </div>
 
                       <div className="form-group full">

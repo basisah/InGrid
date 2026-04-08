@@ -63,6 +63,15 @@ CREATE TABLE properties (
   FOREIGN KEY (landlord_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+CREATE TABLE IF NOT EXISTS property_rooms (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  property_id INT NOT NULL,
+  name VARCHAR(255),
+  type VARCHAR(100),
+  size_category ENUM('small', 'medium', 'large') DEFAULT 'medium',
+  FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
+);
+
 INSERT INTO users 
 (first_name, last_name, email, password, role, is_verified)
 VALUES 
