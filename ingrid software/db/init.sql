@@ -79,7 +79,7 @@ VALUES
 'Admin',
 'User',
 'admin@ingrid.com',
-'$2b$10$7QJ6c8C5GqC0qYw7S0qH7eK5l8cNQW5p0kq0Oe6O8vWJQmTq6qM7y',
+'$2b$10$u1s1uW8z5Fz5QK0x7Zrj7u9g5z9p6vOeJ7FQz9qZCw8Q2c3z6F6bW',
 'admin',
 TRUE
 );
