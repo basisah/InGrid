@@ -10,6 +10,16 @@ export default function FurnitureStore() {
   const [furniture, setFurniture] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showPostForm, setShowPostForm] = useState(false);
+  const [postingFurniture, setPostingFurniture] = useState(false);
+  const [furnitureForm, setFurnitureForm] = useState({
+    name: "",
+    category: "Living Room",
+    price: "",
+    color_theme: "",
+    sizeCategory: "medium",
+    images: []
+  });
   const navigate = useNavigate();
 
   const fetchFurniture = async () => {
@@ -39,6 +49,109 @@ export default function FurnitureStore() {
     (sum, item) => sum + Number(item.price),
     0
   );
+
+  const handleFurnitureFormChange = (e) => {
+    const { name, value } = e.target;
+    setFurnitureForm((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handlePostFurnitureClick = () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      toast.error("Please log in first.");
+      navigate("/login");
+      return;
+    }
+
+    setShowPostForm((prev) => !prev);
+  };
+
+  const handleFurnitureImageUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+
+    if (files.length === 0) {
+      return;
+    }
+
+    try {
+      const imagePromises = files.map(
+        (file) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          })
+      );
+
+      const uploadedImages = await Promise.all(imagePromises);
+
+      setFurnitureForm((prev) => ({
+        ...prev,
+        images: uploadedImages
+      }));
+    } catch (error) {
+      console.error("Furniture image upload error:", error);
+      toast.error("Failed to read selected image files.");
+    }
+  };
+
+  const handleFurniturePost = async (e) => {
+    e.preventDefault();
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      toast.error("Please log in first.");
+      navigate("/login");
+      return;
+    }
+
+    if (
+      !furnitureForm.name.trim() ||
+      !furnitureForm.category.trim() ||
+      !String(furnitureForm.price).trim()
+    ) {
+      toast.error("Name, room type, and price are required.");
+      return;
+    }
+
+    try {
+      setPostingFurniture(true);
+
+      await axios.post("/api/furniture", furnitureForm, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      toast.success("Furniture posted successfully.");
+
+      setFurnitureForm({
+        name: "",
+        category: "Living Room",
+        price: "",
+        color_theme: "",
+        sizeCategory: "medium",
+        images: []
+      });
+
+      setShowPostForm(false);
+      fetchFurniture();
+    } catch (error) {
+      console.error("Error posting furniture:", error);
+      toast.error(
+        error?.response?.data?.message || "Failed to post furniture."
+      );
+    } finally {
+      setPostingFurniture(false);
+    }
+  };
 
   const handleCheckout = () => {
     const token = localStorage.getItem("token");
@@ -77,7 +190,91 @@ export default function FurnitureStore() {
             Explore home furniture ideas and save items you may want to include
             in your housing plans.
           </p>
+
+          <button
+            type="button"
+            className="post-furniture-toggle-btn"
+            onClick={handlePostFurnitureClick}
+          >
+            {showPostForm ? "Close Furniture Form" : "Post Furniture"}
+          </button>
         </div>
+
+        {showPostForm && (
+          <form className="post-furniture-form" onSubmit={handleFurniturePost}>
+            <h2>Post Furniture</h2>
+
+            <div className="post-furniture-grid">
+              <input
+                type="text"
+                name="name"
+                placeholder="Furniture name"
+                value={furnitureForm.name}
+                onChange={handleFurnitureFormChange}
+              />
+
+              <select
+                name="category"
+                value={furnitureForm.category}
+                onChange={handleFurnitureFormChange}
+              >
+                <option value="Living Room">Living Room</option>
+                <option value="Bedroom">Bedroom</option>
+                <option value="Dining Room">Dining Room</option>
+                <option value="Office">Office</option>
+                <option value="Storage">Storage</option>
+              </select>
+
+              <input
+                type="number"
+                name="price"
+                placeholder="Price"
+                value={furnitureForm.price}
+                onChange={handleFurnitureFormChange}
+                min="0"
+                step="0.01"
+              />
+
+              <input
+                type="text"
+                name="color_theme"
+                placeholder="Color"
+                value={furnitureForm.color_theme}
+                onChange={handleFurnitureFormChange}
+              />
+
+              <select
+                name="sizeCategory"
+                value={furnitureForm.sizeCategory}
+                onChange={handleFurnitureFormChange}
+              >
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFurnitureImageUpload}
+              />
+            </div>
+
+            {furnitureForm.images.length > 0 && (
+              <p>
+                {furnitureForm.images.length} image
+                {furnitureForm.images.length !== 1 ? "s" : ""} selected
+              </p>
+            )}
+
+
+            <button type="submit" disabled={postingFurniture}>
+              {postingFurniture ? "Posting..." : "Submit Furniture"}
+            </button>
+          </form>
+        )}
+
 
         {loading ? (
           <p className="furniture-empty">Loading furniture...</p>

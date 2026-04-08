@@ -581,6 +581,32 @@ app.get("/api/my-properties", authenticate, async (req, res) => {
   }
 });
 
+// GET MY FURNITURE
+app.get("/api/my-furniture", authenticate, async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT
+         id,
+         name,
+         category,
+         price,
+         image_url,
+         size_category AS sizeCategory,
+         is_user_posted AS isUserPosted,
+         created_at AS createdAt
+       FROM furniture
+       WHERE seller_id = ?
+       ORDER BY created_at DESC, id DESC`,
+      [req.user.id]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error("GET /api/my-furniture error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // MAKE PAYMENT / BOOK PROPERTY
 app.post("/api/payments", authenticate, async (req, res) => {
   const { property_id, check_in, check_out, guests, amount } = req.body;
@@ -696,10 +722,27 @@ app.delete("/api/wishlist/:propertyId", authenticate, async (req, res) => {
 // GET ALL FURNITURE
 app.get("/api/furniture", async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM furniture");
+    const [rows] = await db.query(
+      `SELECT
+         f.id,
+         f.name,
+         f.category,
+         f.price,
+         f.image_url,
+         f.color_theme,
+         f.width,
+         f.depth,
+         f.size_category AS sizeCategory,
+         f.seller_id AS sellerId,
+         f.is_user_posted AS isUserPosted,
+         f.created_at AS createdAt
+       FROM furniture f
+       ORDER BY f.created_at DESC, f.id DESC`
+    );
+
     res.json(rows);
   } catch (err) {
-    console.error(err);
+    console.error("GET /api/furniture error:", err);
     res.status(500).json({ error: "Failed to fetch furniture" });
   }
 });
@@ -821,6 +864,75 @@ app.get("/api/furniture/:id", async (req, res) => {
     });
   }
 });
+
+// POST FURNITURE
+app.post("/api/furniture", authenticate, async (req, res) => {
+  try {
+    const {
+      name,
+      category,
+      price,
+      color_theme,
+      sizeCategory,
+      images = []
+    } = req.body;
+
+    if (!name || !category || !price) {
+      return res.status(400).json({
+        message: "Name, category, and price are required."
+      });
+    }
+
+    const normalizedSizeCategory = ["small", "medium", "large"].includes(sizeCategory)
+      ? sizeCategory
+      : "medium";
+
+    const validImages = Array.isArray(images)
+      ? images.filter((img) => img && String(img).trim() !== "")
+      : [];
+
+    const mainImage = validImages.length > 0 ? validImages[0] : null;
+
+    const [result] = await db.query(
+      `INSERT INTO furniture
+       (name, category, price, image_url, color_theme, width, depth, size_category, seller_id, is_user_posted)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)`,
+      [
+        String(name).trim(),
+        String(category).trim(),
+        Number(price),
+        mainImage,
+        color_theme ? String(color_theme).trim() : null,
+        null,
+        null,
+        normalizedSizeCategory,
+        req.user.id
+      ]
+    );
+
+    const furnitureId = result.insertId;
+
+    if (validImages.length > 0) {
+      const imageValues = validImages.map((img) => [furnitureId, img]);
+
+      await db.query(
+        "INSERT INTO furniture_images (furniture_id, image_url) VALUES ?",
+        [imageValues]
+      );
+    }
+
+    res.status(201).json({
+      message: "Furniture posted successfully.",
+      furnitureId
+    });
+  } catch (err) {
+    console.error("POST /api/furniture error:", err);
+    res.status(500).json({
+      message: err.sqlMessage || err.message || "Failed to post furniture"
+    });
+  }
+});
+
 // GET ALL USERS (ADMIN)
 app.get("/api/admin/users", authenticate, async (req, res) => {
   if (req.user.role !== "admin") {
@@ -1385,6 +1497,41 @@ app.post("/api/admin/reject-user/:userId", authenticate, async (req, res) => {
   } catch (err) {
     console.error("Reject user error:", err);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// DELETE FURNITURE (only seller who posted or admin can delete)
+app.delete("/api/furniture/:id", authenticate, async (req, res) => {
+  const furnitureId = Number(req.params.id);
+  const userId = req.user.id;
+  const userRole = req.user.role;
+
+  if (!Number.isInteger(furnitureId) || furnitureId <= 0) {
+    return res.status(400).json({ message: "Invalid furniture id." });
+  }
+
+  try {
+    const [rows] = await db.query(
+      "SELECT id, seller_id FROM furniture WHERE id = ?",
+      [furnitureId]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ message: "Furniture not found" });
+    }
+
+    const item = rows[0];
+
+    if (userRole !== "admin" && Number(item.seller_id) !== Number(userId)) {
+      return res.status(403).json({ message: "You can only delete your own furniture." });
+    }
+
+    await db.query("DELETE FROM furniture WHERE id = ?", [furnitureId]);
+
+    res.json({ message: "Furniture deleted successfully." });
+  } catch (err) {
+    console.error("DELETE /api/furniture/:id error:", err);
+    res.status(500).json({ message: "Failed to delete furniture." });
   }
 });
 

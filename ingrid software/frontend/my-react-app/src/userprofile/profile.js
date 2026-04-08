@@ -22,6 +22,7 @@ function Profile() {
   const [messageTab, setMessageTab] = useState("all");
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [myListings, setMyListings] = useState([]);
+  const [myFurniture, setMyFurniture] = useState([]);
 
   const token = localStorage.getItem("token");
   const today = new Date();
@@ -112,6 +113,15 @@ function Profile() {
         setMyListings(Array.isArray(myListingsRes.data) ? myListingsRes.data : []);
       } catch {
         setMyListings([]);
+      }
+
+      try {
+        const myFurnitureRes = await axios.get("/api/my-furniture", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setMyFurniture(Array.isArray(myFurnitureRes.data) ? myFurnitureRes.data : []);
+      } catch {
+        setMyFurniture([]);
       }
 
       await fetchInbox(token);
@@ -240,6 +250,26 @@ function Profile() {
     } catch (err) {
       console.error("Delete listing failed:", err);
       alert(err.response?.data?.message || "Failed to delete listing.");
+    }
+  };
+
+  const handleDeleteFurniture = async (furnitureId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this furniture post? This cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`/api/furniture/${furnitureId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setMyFurniture((prev) => prev.filter((item) => item.id !== furnitureId));
+      alert("Furniture deleted successfully.");
+    } catch (err) {
+      console.error("Delete furniture failed:", err);
+      alert(err.response?.data?.message || "Failed to delete furniture.");
     }
   };
 
@@ -616,6 +646,59 @@ function Profile() {
                           <button
                             className="profile-delete-btn"
                             onClick={() => handleDeleteListing(listing.id)}
+                            type="button"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section className="profile-panel">
+              <div className="panel-header">
+                <div>
+                  <h2>My Furniture</h2>
+                  <p>Furniture posts you created in the store</p>
+                </div>
+              </div>
+
+              {myFurniture.length === 0 ? (
+                <div className="empty-state">You have not posted any furniture yet.</div>
+              ) : (
+                <div className="my-listings-grid">
+                  {myFurniture.map((item) => (
+                    <div className="my-listing-card" key={item.id}>
+                      <div className="my-listing-image-wrap">
+                        {item.image_url ? (
+                          <img
+                            src={item.image_url}
+                            alt={item.name}
+                            className="my-listing-image"
+                          />
+                        ) : (
+                          <div className="my-listing-fallback">🪑</div>
+                        )}
+
+                        <span className="my-listing-price">${Number(item.price || 0).toFixed(2)}</span>
+                      </div>
+
+                      <div className="my-listing-body">
+                        <h4>{item.name}</h4>
+                        <p className="my-listing-address">{item.category}</p>
+
+                        <div className="my-listing-meta">
+                          <span>{item.sizeCategory || "medium"}</span>
+                          <span>{item.isUserPosted ? "User Post" : "Store Item"}</span>
+                        </div>
+
+                        <div className="listing-card-actions">
+                          <button
+                            className="profile-delete-btn"
+                            onClick={() => handleDeleteFurniture(item.id)}
                             type="button"
                           >
                             Delete

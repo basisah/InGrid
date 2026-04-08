@@ -5,16 +5,29 @@ CREATE TABLE property_images (
     FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
 );
 
--- Furniture Table (UPDATED with width & depth)
+-- Furniture Table
 CREATE TABLE furniture (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255),
-    category VARCHAR(100),
-    price DECIMAL(10,2),
-    image_url VARCHAR(500),
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    image_url LONGTEXT,
     color_theme VARCHAR(100),
-    width DECIMAL(5,2),
-    depth DECIMAL(5,2)
+    width DECIMAL(8,2),
+    depth DECIMAL(8,2),
+    size_category ENUM('small', 'medium', 'large') DEFAULT 'medium',
+    seller_id INT NULL,
+    is_user_posted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+
+CREATE TABLE furniture_images (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    furniture_id INT NOT NULL,
+    image_url LONGTEXT NOT NULL,
+    FOREIGN KEY (furniture_id) REFERENCES furniture(id) ON DELETE CASCADE
 );
 
 -- Property-Furniture relation
@@ -78,23 +91,26 @@ CREATE TABLE payments (
   FOREIGN KEY (property_id) REFERENCES properties(id)
 );
 
--- Furniture seed data (UPDATED WITH YOUR LINKS)
-INSERT INTO furniture (id, name, category, price, image_url, color_theme, width, depth) VALUES
-(1, 'Sofa Set', 'Living Room', 899.99, 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc', 'Gray', 6.00, 3.00),
+-- Furniture seed data
+INSERT INTO furniture (
+    id, name, category, price, image_url, color_theme, width, depth, size_category, seller_id, is_user_posted
+) VALUES
+(1, 'Sofa Set', 'Living Room', 899.99, 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc', 'Gray', 6.00, 3.00, 'large', NULL, FALSE),
 
-(2, 'Dining Table', 'Dining Room', 499.99, 'https://images.unsplash.com/photo-1572025442348-511bdcae389b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fGRpbm5pbmclMjB0YWJsZXxlbnwwfHwwfHx8MA%3D%3D', 'Brown', 9.00, 5.00),
+(2, 'Dining Table', 'Dining Room', 499.99, 'https://images.unsplash.com/photo-1572025442348-511bdcae389b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fGRpbm5pbmclMjB0YWJsZXxlbnwwfHwwfHx8MA%3D%3D', 'Brown', 9.00, 5.00, 'large', NULL, FALSE),
 
-(3, 'Queen Bed', 'Bedroom', 799.99, 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85', 'White', 5.00, 7.00),
+(3, 'Queen Bed', 'Bedroom', 799.99, 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85', 'White', 5.00, 7.00, 'large', NULL, FALSE),
 
-(4, 'Office Desk', 'Office', 299.99, 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd', 'Black', 4.00, 2.00),
+(4, 'Office Desk', 'Office', 299.99, 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd', 'Black', 4.00, 2.00, 'medium', NULL, FALSE),
 
-(5, 'Bookshelf', 'Storage', 189.99, 'https://plus.unsplash.com/premium_photo-1677517547407-6a0a6cdb2fb0?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8Ym9va3NlbGZ8ZW58MHx8MHx8fDA%3D', 'Oak', 3.00, 1.00),
+(5, 'Bookshelf', 'Storage', 189.99, 'https://plus.unsplash.com/premium_photo-1677517547407-6a0a6cdb2fb0?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8Ym9va3NlbGZ8ZW58MHx8MHx8fDA%3D', 'Oak', 3.00, 1.00, 'small', NULL, FALSE),
 
-(6, 'TV Stand', 'Living Room', 219.99, 'https://images.unsplash.com/photo-1698674388698-f22228a79879?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fHR2JTIwc3RhbmR8ZW58MHx8MHx8fDA%3D', 'Walnut', 4.00, 1.50),
+(6, 'TV Stand', 'Living Room', 219.99, 'https://images.unsplash.com/photo-1698674388698-f22228a79879?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fHR2JTIwc3RhbmR8ZW58MHx8MHx8fDA%3D', 'Walnut', 4.00, 1.50, 'medium', NULL, FALSE),
 
-(7, 'Coffee Table', 'Living Room', 159.99, 'https://plus.unsplash.com/premium_photo-1722843459670-cc2560c22b36?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fGNvZmZlZSUyMHRhYmxlfGVufDB8fDB8fHww', 'Brown', 3.00, 2.00),
+(7, 'Coffee Table', 'Living Room', 159.99, 'https://plus.unsplash.com/premium_photo-1722843459670-cc2560c22b36?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fGNvZmZlZSUyMHRhYmxlfGVufDB8fDB8fHww', 'Brown', 3.00, 2.00, 'small', NULL, FALSE),
 
-(8, 'Nightstand', 'Bedroom', 89.99, 'https://plus.unsplash.com/premium_photo-1686167988299-c05aaf2f5075?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bmlnaHRzdGFuZHxlbnwwfHwwfHx8MA%3D%3D', 'White', 2.00, 1.50);
+(8, 'Nightstand', 'Bedroom', 89.99, 'https://plus.unsplash.com/premium_photo-1686167988299-c05aaf2f5075?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bmlnaHRzdGFuZHxlbnwwfHwwfHx8MA%3D%3D', 'White', 2.00, 1.50, 'small', NULL, FALSE);
+
 
 -- Link all furniture to property 3
 INSERT INTO property_furniture (property_id, furniture_id) VALUES
