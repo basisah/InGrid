@@ -703,6 +703,7 @@ app.get("/api/furniture", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch furniture" });
   }
 });
+
 // GET FURNITURE RECOMMENDATIONS FOR A PROPERTY
 app.get("/api/furniture/:id", async (req, res) => {
   try {
@@ -717,30 +718,98 @@ app.get("/api/furniture/:id", async (req, res) => {
       return res.status(404).json({ error: "Property not found" });
     }
 
+    const [propertyRoomRows] = await db.query(
+      `SELECT id, name, type, size_category AS sizeCategory
+       FROM property_rooms
+       WHERE property_id = ?
+       ORDER BY id ASC`,
+      [propertyId]
+    );
+
     const [rows] = await db.query(
       `SELECT id, name, category, price, image_url, color_theme
        FROM furniture`
     );
 
-    const rooms = {
-      "Living Room": { width: 12, depth: 15 },
-      "Bedroom": { width: 10, depth: 12 },
-      "Dining Room": { width: 8, depth: 8 },
-      "Office": { width: 8, depth: 10 },
-      "Storage": { width: 6, depth: 8 }
+    const normalize = (value) => String(value || "").trim().toLowerCase();
+
+    const categoryKeywords = {
+      "Living Room": ["living"],
+      Bedroom: ["bed"],
+      "Dining Room": ["dining"],
+      Office: ["office", "study"],
+      Storage: ["storage", "store"]
+    };
+
+    const sizeOrder = {
+      small: 1,
+      medium: 2,
+      large: 3
+    };
+
+    const getRequiredSize = (item) => {
+      const itemName = normalize(item.name);
+      const itemCategory = normalize(item.category);
+
+      if (itemName.includes("sofa") || itemName.includes("bed")) {
+        return "medium";
+      }
+
+      if (itemCategory === "bedroom" && itemName.includes("bed")) {
+        return "medium";
+      }
+
+      return "small";
+    };
+
+    const roomMatchesCategory = (room, category) => {
+      const keywords = categoryKeywords[category] || [];
+      const roomName = normalize(room.name);
+      const roomType = normalize(room.type);
+
+      return keywords.some(
+        (keyword) => roomName.includes(keyword) || roomType.includes(keyword)
+      );
     };
 
     const furnitureWithFitInfo = rows.map((item) => {
-      const room = rooms[item.category];
+      const matchingRooms = propertyRoomRows.filter((room) =>
+        roomMatchesCategory(room, item.category)
+      );
+
+      if (matchingRooms.length === 0) {
+        return {
+          ...item,
+          room: null,
+          fits: false,
+          clearance_space: null,
+          reason: `No ${item.category} found in this property`
+        };
+      }
+
+      const requiredSize = getRequiredSize(item);
+
+      const fitRoom = matchingRooms.find((room) => {
+        const roomSize = normalize(room.sizeCategory) || "medium";
+        return (sizeOrder[roomSize] || 0) >= (sizeOrder[requiredSize] || 0);
+      });
+
+      if (!fitRoom) {
+        return {
+          ...item,
+          room: matchingRooms[0].name || item.category,
+          fits: false,
+          clearance_space: null,
+          reason: `${item.name} needs a ${requiredSize} or large room`
+        };
+      }
 
       return {
         ...item,
-        room: item.category,
-        fits: room ? true : false,
+        room: fitRoom.name || item.category,
+        fits: true,
         clearance_space: null,
-        reason: room
-          ? "Fits in suggested room"
-          : "No matching room found for this furniture category"
+        reason: `Fits in ${fitRoom.name || item.category} (${fitRoom.sizeCategory})`
       };
     });
 

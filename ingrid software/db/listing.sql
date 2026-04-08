@@ -99,3 +99,23 @@ INSERT INTO furniture (id, name, category, price, image_url, color_theme, width,
 -- Link all furniture to property 3
 INSERT INTO property_furniture (property_id, furniture_id) VALUES
 (3,1),(3,2),(3,3),(3,4),(3,5),(3,6),(3,7),(3,8);
+-- Seed rooms for demo properties so furniture fit logic works after clone + docker run
+INSERT INTO property_rooms (property_id, name, type, size_category) VALUES
+(1, 'Living Room', 'living', 'large'),
+(1, 'Bedroom', 'bedroom', 'medium'),
+(1, 'Dining Room', 'dining', 'medium'),
+
+(2, 'Living Room', 'living', 'large'),
+(2, 'Bedroom 1', 'bedroom', 'large'),
+(2, 'Bedroom 2', 'bedroom', 'medium'),
+(2, 'Bedroom 3', 'bedroom', 'medium'),
+(2, 'Storage', 'storage', 'small'),
+
+(3, 'Living Room', 'living', 'large'),
+(3, 'Bedroom 1', 'bedroom', 'large'),
+(3, 'Bedroom 2', 'bedroom', 'medium'),
+(3, 'Bedroom 3', 'bedroom', 'medium'),
+(3, 'Bedroom 4', 'bedroom', 'medium'),
+(3, 'Dining Room', 'dining', 'medium'),
+(3, 'Office', 'office', 'small'),
+(3, 'Storage', 'storage', 'small');
