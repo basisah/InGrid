@@ -375,7 +375,7 @@ export default function PostProperty() {
                   >
                     <option value="rental">Rental</option>
                     <option value="short-term">Short-Term</option>
-                    <option value="buy">Buy</option>
+                    <option value="buy">Sell</option>
                   </select>
                 </div>
 
