@@ -62,6 +62,18 @@ export default function Wishlist() {
     }
   };
 
+  const removeFromFurnitureWishlist = async (furnitureId) => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.delete(`/api/furniture-wishlist/${furnitureId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setWishlistFurniture(prev => prev.filter(f => f.id !== furnitureId));
+    } catch (err) {
+      console.error("Remove furniture wishlist failed:", err);
+    }
+  };
+
   if (loading) {
     return (
       <>
