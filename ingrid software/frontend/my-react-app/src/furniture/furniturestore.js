@@ -211,8 +211,7 @@ const toggleFurnitureWishlist = async (e, furnitureId) => {
         <div className="furniture-header">
           <h1>Furniture Store</h1>
           <p>
-            Explore home furniture ideas and save items you may want to include
-            in your housing plans.
+            Click on any furniture item to add it to your selection. Click again to remove it.
           </p>
 
           <button
