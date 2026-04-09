@@ -135,6 +135,34 @@ export default function Wishlist() {
             ))}
           </div>
         )}
+        <div className="wishlist-header" style={{ marginTop: "40px" }}>
+  <h2>Saved Furniture ❤️</h2>
+  <p>Furniture items you saved.</p>
+</div>
+
+{wishlistFurniture.length === 0 ? (
+  <p className="wishlist-empty">No saved furniture yet. Click the ❤️ on a furniture item to save it.</p>
+) : (
+  <div className="property-grid">
+    {wishlistFurniture.map(item => (
+      <div className="property-card wishlist-card" key={item.id}>
+        <div style={{ position: "relative" }}>
+          <img src={item.image_url} alt={item.name} />
+          <button
+            className="wishlist-remove-btn"
+            onClick={() => removeFromFurnitureWishlist(item.id)}
+            type="button"
+          >❤️</button>
+        </div>
+        <div className="wishlist-card-body">
+          <h3>{item.name}</h3>
+          <p>{item.category}</p>
+          <p className="price">${Number(item.price).toFixed(2)}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
       </div>
 
       <Footer />
