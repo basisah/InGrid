@@ -9,6 +9,7 @@ import "./wishlist.css";
 export default function Wishlist() {
   const navigate = useNavigate();
   const [wishlistProperties, setWishlistProperties] = useState([]);
+  const [wishlistFurniture, setWishlistFurniture] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,6 +29,13 @@ export default function Wishlist() {
         const propertiesRes = await axios.get("/api/properties");
         const saved = propertiesRes.data.filter((p) => ids.includes(p.id));
         setWishlistProperties(saved);
+        const furnitureWishlistRes = await axios.get("/api/furniture-wishlist", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const furnitureIds = furnitureWishlistRes.data;
+        const allFurnitureRes = await axios.get("/api/furniture");
+        const savedFurniture = allFurnitureRes.data.filter(f => furnitureIds.includes(f.id));
+        setWishlistFurniture(savedFurniture);
       } catch (err) {
         console.error(err);
       } finally {
@@ -51,6 +59,18 @@ export default function Wishlist() {
       );
     } catch (err) {
       console.error("Remove wishlist failed:", err);
+    }
+  };
+
+  const removeFromFurnitureWishlist = async (furnitureId) => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.delete(`/api/furniture-wishlist/${furnitureId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setWishlistFurniture(prev => prev.filter(f => f.id !== furnitureId));
+    } catch (err) {
+      console.error("Remove furniture wishlist failed:", err);
     }
   };
 
@@ -115,6 +135,34 @@ export default function Wishlist() {
             ))}
           </div>
         )}
+        <div className="wishlist-header" style={{ marginTop: "40px" }}>
+  <h2>Saved Furniture ❤️</h2>
+  <p>Furniture items you saved.</p>
+</div>
+
+{wishlistFurniture.length === 0 ? (
+  <p className="wishlist-empty">No saved furniture yet. Click the ❤️ on a furniture item to save it.</p>
+) : (
+  <div className="property-grid">
+    {wishlistFurniture.map(item => (
+      <div className="property-card wishlist-card" key={item.id}>
+        <div style={{ position: "relative" }}>
+          <img src={item.image_url} alt={item.name} />
+          <button
+            className="wishlist-remove-btn"
+            onClick={() => removeFromFurnitureWishlist(item.id)}
+            type="button"
+          >❤️</button>
+        </div>
+        <div className="wishlist-card-body">
+          <h3>{item.name}</h3>
+          <p>{item.category}</p>
+          <p className="price">${Number(item.price).toFixed(2)}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
       </div>
 
       <Footer />
