@@ -9,6 +9,7 @@ import "./wishlist.css";
 export default function Wishlist() {
   const navigate = useNavigate();
   const [wishlistProperties, setWishlistProperties] = useState([]);
+  const [wishlistFurniture, setWishlistFurniture] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,6 +29,13 @@ export default function Wishlist() {
         const propertiesRes = await axios.get("/api/properties");
         const saved = propertiesRes.data.filter((p) => ids.includes(p.id));
         setWishlistProperties(saved);
+        const furnitureWishlistRes = await axios.get("/api/furniture-wishlist", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const furnitureIds = furnitureWishlistRes.data;
+        const allFurnitureRes = await axios.get("/api/furniture");
+        const savedFurniture = allFurnitureRes.data.filter(f => furnitureIds.includes(f.id));
+        setWishlistFurniture(savedFurniture);
       } catch (err) {
         console.error(err);
       } finally {
