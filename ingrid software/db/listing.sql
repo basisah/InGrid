@@ -101,6 +101,16 @@ CREATE TABLE payments (
   FOREIGN KEY (property_id) REFERENCES properties(id)
 );
 
+CREATE TABLE saved_payment_methods (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  card_holder_name VARCHAR(200),
+  last_four VARCHAR(4),
+  expiry VARCHAR(5),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Furniture seed data
 INSERT INTO furniture (
     id, name, category, price, image_url, color_theme, width, depth, size_category, seller_id, is_user_posted
