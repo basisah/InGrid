@@ -21,6 +21,30 @@ export default function FurnitureStore() {
     images: []
   });
   const navigate = useNavigate();
+  const [furnitureWishlist, setFurnitureWishlist] = useState([]);
+
+useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+  axios.get("/api/furniture-wishlist", { headers: { Authorization: `Bearer ${token}` } })
+    .then(r => setFurnitureWishlist(r.data))
+    .catch(() => {});
+}, []);
+
+const toggleFurnitureWishlist = async (e, furnitureId) => {
+  e.stopPropagation();
+  const token = localStorage.getItem("token");
+  if (!token) { toast.error("Please log in first."); return; }
+  if (furnitureWishlist.includes(furnitureId)) {
+    await axios.delete(`/api/furniture-wishlist/${furnitureId}`, { headers: { Authorization: `Bearer ${token}` } });
+    setFurnitureWishlist(furnitureWishlist.filter(id => id !== furnitureId));
+    toast.success("Removed from wishlist");
+  } else {
+    await axios.post(`/api/furniture-wishlist/${furnitureId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+    setFurnitureWishlist([...furnitureWishlist, furnitureId]);
+    toast.success("Added to wishlist ❤️");
+  }
+};
 
   const fetchFurniture = async () => {
     try {
@@ -290,7 +314,14 @@ export default function FurnitureStore() {
                   onClick={() => toggleItem(item)}
                   className={`furniture-shop-card ${selected ? "selected" : ""}`}
                 >
-                  <img src={item.image_url} alt={item.name} />
+                  <div style={{ position: "relative" }}>
+                    <img src={item.image_url} alt={item.name} />
+                    <span
+                      onClick={(e) => toggleFurnitureWishlist(e, item.id)}
+                      style={{ position: "absolute", top: "8px", right: "8px", fontSize: "22px", cursor: "pointer" }}>
+                      {furnitureWishlist.includes(item.id) ? "❤️" : "🤍"}
+                    </span>
+                  </div>
 
                   <div className="furniture-shop-body">
                     <h3>{item.name}</h3>

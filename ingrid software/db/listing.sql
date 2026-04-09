@@ -22,6 +22,16 @@ CREATE TABLE furniture (
     FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+CREATE TABLE saved_furniture (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  furniture_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (furniture_id) REFERENCES furniture(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_save (user_id, furniture_id)
+);
+
 
 CREATE TABLE furniture_images (
     id INT PRIMARY KEY AUTO_INCREMENT,

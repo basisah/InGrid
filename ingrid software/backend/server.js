@@ -933,6 +933,33 @@ app.post("/api/furniture", authenticate, async (req, res) => {
   }
 });
 
+// GET FURNITURE WISHLIST
+app.get("/api/furniture-wishlist", authenticate, async (req, res) => {
+  const [rows] = await db.query(
+    "SELECT furniture_id FROM saved_furniture WHERE user_id = ?",
+    [req.user.id]
+  );
+  res.json(rows.map(r => r.furniture_id));
+});
+
+// ADD TO FURNITURE WISHLIST
+app.post("/api/furniture-wishlist/:furnitureId", authenticate, async (req, res) => {
+  await db.query(
+    "INSERT IGNORE INTO saved_furniture (user_id, furniture_id) VALUES (?, ?)",
+    [req.user.id, req.params.furnitureId]
+  );
+  res.json({ message: "Added to wishlist" });
+});
+
+// REMOVE FROM FURNITURE WISHLIST
+app.delete("/api/furniture-wishlist/:furnitureId", authenticate, async (req, res) => {
+  await db.query(
+    "DELETE FROM saved_furniture WHERE user_id = ? AND furniture_id = ?",
+    [req.user.id, req.params.furnitureId]
+  );
+  res.json({ message: "Removed from wishlist" });
+});
+
 // GET ALL USERS (ADMIN)
 app.get("/api/admin/users", authenticate, async (req, res) => {
   if (req.user.role !== "admin") {
