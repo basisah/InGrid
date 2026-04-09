@@ -57,10 +57,10 @@ export default function ChatPage() {
 
       const match = Array.isArray(inboxRes.data)
         ? inboxRes.data.find(
-            (item) =>
-              Number(item.property_id) === Number(propertyId) &&
-              Number(item.other_user_id) === Number(receiverId)
-          )
+          (item) =>
+            Number(item.property_id) === Number(propertyId) &&
+            Number(item.other_user_id) === Number(receiverId)
+        )
         : null;
 
       if (match) {
@@ -147,7 +147,7 @@ export default function ChatPage() {
     setSending(true);
 
     try {
-      await axios.post(
+      const response = await axios.post(
         "/api/messages",
         {
           receiver_id: Number(receiverId),
@@ -158,6 +158,16 @@ export default function ChatPage() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
+      const newMessage = response.data?.data;
+
+      if (newMessage) {
+        setMessages((prev) => {
+          const exists = prev.some((msg) => msg.id === newMessage.id);
+          if (exists) return prev;
+          return [...prev, newMessage];
+        });
+      }
 
       socket.emit("typing", {
         propertyId: Number(propertyId),
