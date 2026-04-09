@@ -686,20 +686,6 @@ app.get("/api/payments", authenticate, async (req, res) => {
   }
 });
 
-// SAVE PAYMENT METHOD
-app.post("/api/payment-methods", authenticate, async (req, res) => {
-  const { card_holder_name, last_four, expiry } = req.body;
-  try {
-    await db.query(
-      "INSERT INTO saved_payment_methods (user_id, card_holder_name, last_four, expiry) VALUES (?, ?, ?, ?)",
-      [req.user.id, card_holder_name, last_four, expiry]
-    );
-    res.json({ message: "Payment method saved" });
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
 // GET WISHLIST
 app.get("/api/wishlist", authenticate, async (req, res) => {
   try {
