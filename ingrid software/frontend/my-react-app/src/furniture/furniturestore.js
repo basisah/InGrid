@@ -315,7 +315,14 @@ const toggleFurnitureWishlist = async (e, furnitureId) => {
                   onClick={() => toggleItem(item)}
                   className={`furniture-shop-card ${selected ? "selected" : ""}`}
                 >
-                  <img src={item.image_url} alt={item.name} />
+                  <div style={{ position: "relative" }}>
+                    <img src={item.image_url} alt={item.name} />
+                    <span
+                      onClick={(e) => toggleFurnitureWishlist(e, item.id)}
+                      style={{ position: "absolute", top: "8px", right: "8px", fontSize: "22px", cursor: "pointer" }}>
+                      {furnitureWishlist.includes(item.id) ? "❤️" : "🤍"}
+                    </span>
+                  </div>
 
                   <div className="furniture-shop-body">
                     <h3>{item.name}</h3>
