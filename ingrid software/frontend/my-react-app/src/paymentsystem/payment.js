@@ -31,7 +31,7 @@ export default function Payment() {
   });
 
   const [loading, setLoading] = useState(false);
-
+  const [saveCard, setSaveCard] = useState(false);
   const handleChange = (e) => {
     let value = e.target.value;
 
@@ -109,6 +109,14 @@ export default function Payment() {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
+      if (saveCard) {
+        const lastFour = form.cardNumber.replace(/\s/g, "").slice(-4);
+        await axios.post("/api/payment-methods", {
+          card_holder_name: `${form.firstName} ${form.lastName}`,
+          last_four: lastFour,
+          expiry: form.expiry
+        }, { headers: { Authorization: `Bearer ${token}` } });
+      }
 
       toast.success("Booking successful!");
       setTimeout(() => navigate("/profile"), 1200);
@@ -215,6 +223,18 @@ export default function Payment() {
                   value={form.zip}
                   onChange={handleChange}
                 />
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "16px 0" }}>
+                <input 
+                  type="checkbox" 
+                  id="saveCard"
+                  checked={saveCard}
+                  onChange={e => setSaveCard(e.target.checked)}
+                  style={{ width: "18px", height: "18px", cursor: "pointer" }}
+                />
+                <label htmlFor="saveCard" style={{ fontSize: "14px", color: "#555", cursor: "pointer" }}>
+                  Save my payment details for future bookings
+                </label>
               </div>
             </div>
 
